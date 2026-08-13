@@ -1,6 +1,6 @@
-// Prisma Schema para Sorteador de Times Pro
+// Prisma Schema para Sorteador de Times Pro (PostgreSQL / Neon)
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
