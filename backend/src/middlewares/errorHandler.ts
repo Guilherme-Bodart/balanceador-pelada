@@ -1,0 +1,20 @@
+import { Request, Response, NextFunction } from 'express';
+
+export const errorHandler = (
+  error: any,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
+): void => {
+  console.error('[Error Handler]:', error.message || error);
+
+  const statusCode = error.statusCode || 400;
+  const message = error.message || 'Ocorreu um erro interno no servidor.';
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {}),
+  });
+};

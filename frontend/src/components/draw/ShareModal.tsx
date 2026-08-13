@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import { DrawResponse } from '../../types';
+import { Modal } from '../common/Modal';
+import { Button } from '../common/Button';
+import { Copy, Check, Send } from 'lucide-react';
+
+interface ShareModalProps {
+  result: DrawResponse | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const ShareModal: React.FC<ShareModalProps> = ({
+  result,
+  isOpen,
+  onClose,
+}) => {
+  const [copied, setCopied] = useState(false);
+
+  if (!result) return null;
+
+  const { teamA, teamB, reserves, differenceScore } = result;
+
+  const generateShareText = () => {
+    let text = `⚽ *TIMES SORTEADOS - PELADA PRO* ⚽\n`;
+    text += `⚖️ *Diferença:* ${differenceScore.toFixed(1)} pts (Equilíbrio Inteligente)\n\n`;
+
+    // Time A
+    text += `🟢 *${teamA.name.toUpperCase()}*\n`;
+    text += `📊 Média: ${teamA.averageScore.toFixed(1)} | Soma: ${teamA.totalScore.toFixed(1)}\n`;
+    if (teamA.goalkeeper) {
+      text += `🧤 Goleiro: ${teamA.goalkeeper.name} (★ ${teamA.goalkeeper.overallRating.toFixed(1)})\n`;
+    }
+    text += `🏃 Linha:\n`;
+    teamA.fieldPlayers.forEach((p, idx) => {
+      text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+    });
+
+    text += `\n------------------------\n\n`;
+
+    // Time B
+    text += `🔵 *${teamB.name.toUpperCase()}*\n`;
+    text += `📊 Média: ${teamB.averageScore.toFixed(1)} | Soma: ${teamB.totalScore.toFixed(1)}\n`;
+    if (teamB.goalkeeper) {
+      text += `🧤 Goleiro: ${teamB.goalkeeper.name} (★ ${teamB.goalkeeper.overallRating.toFixed(1)})\n`;
+    }
+    text += `🏃 Linha:\n`;
+    teamB.fieldPlayers.forEach((p, idx) => {
+      text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+    });
+
+    // Reservas
+    if (reserves.length > 0) {
+      text += `\n------------------------\n`;
+      text += `🔄 *PRÓXIMOS / RESERVAS:*\n`;
+      reserves.forEach((p, idx) => {
+        text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+      });
+    }
+
+    text += `\n🏆 *Sorteador de Times Pro* - Boa pelada a todos! ⚽🔥`;
+    return text;
+  };
+
+  const shareText = generateShareText();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleWhatsApp = () => {
+    const encoded = encodeURIComponent(shareText);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Compartilhar Escalação"
+      subtitle="Envie os times prontos no grupo da pelada"
+      maxWidth="md"
+    >
+      <div className="space-y-4">
+        {/* Caixa de Texto Formatada */}
+        <div className="relative">
+          <textarea
+            readOnly
+            value={shareText}
+            rows={12}
+            className="w-full bg-slate-900 border border-slate-700/80 rounded-2xl p-3.5 text-xs font-mono text-slate-300 leading-relaxed focus:outline-none select-all"
+          />
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex-1"
+            onClick={handleCopy}
+            leftIcon={copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+          >
+            {copied ? 'Copiado!' : 'Copiar Texto'}
+          </Button>
+
+          <Button
+            type="button"
+            variant="glow"
+            className="flex-1"
+            onClick={handleWhatsApp}
+            leftIcon={<Send className="w-4 h-4" />}
+          >
+            Abrir WhatsApp
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};

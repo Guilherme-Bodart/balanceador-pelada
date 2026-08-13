@@ -1,0 +1,31 @@
+// Prisma Schema para Sorteador de Times Pro
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  name      String
+  photoUrl  String?
+  position  String   @default("FIELD") // "FIELD" (Linha) ou "GOALKEEPER" (Goleiro)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ratings   Rating[]
+
+  @@map("players")
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  value     Float    // Nota de 1.0 a 10.0
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("ratings")
+}
