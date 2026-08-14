@@ -15,8 +15,6 @@ interface DrawConfigProps {
 }
 
 export const DrawConfig: React.FC<DrawConfigProps> = ({
-  playersPerTeam,
-  onPlayersPerTeamChange,
   totalSelected,
   totalGoalkeepers,
   onDraw,
@@ -25,83 +23,61 @@ export const DrawConfig: React.FC<DrawConfigProps> = ({
   onDeselectAll,
   isAllSelected,
 }) => {
-  const neededPlayers = playersPerTeam * 2;
-  const hasEnoughPlayers = totalSelected >= neededPlayers;
-  const presets = [4, 5, 6, 7, 8, 11];
+  const hasEnoughPlayers = totalSelected >= 2;
+  const teamASize = Math.ceil(totalSelected / 2);
+  const teamBSize = Math.floor(totalSelected / 2);
 
   return (
     <div className="glass-panel rounded-3xl p-4 sm:p-5 border border-slate-800 space-y-4 mb-4 shadow-card-elevated">
-      {/* Linha 1: Seletor de Formato (5x5, 6x6...) */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-emerald-400" />
-            Formato da Partida
-          </label>
-          <span className="text-xs font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
-            {playersPerTeam} x {playersPerTeam} ({neededPlayers} em campo)
-          </span>
-        </div>
-
-        <div className="grid grid-cols-6 gap-1.5">
-          {presets.map((count) => (
-            <button
-              key={count}
-              type="button"
-              onClick={() => onPlayersPerTeamChange(count)}
-              className={`py-2 rounded-xl text-xs font-bold font-mono transition-all duration-150 ${
-                playersPerTeam === count
-                  ? 'bg-emerald-500 text-slate-950 shadow-glow-emerald scale-105'
-                  : 'bg-slate-850 hover:bg-slate-800 text-slate-300 border border-slate-800'
-              }`}
-            >
-              {count}x{count}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Linha 2: Resumo de Seleção e Avisos */}
+      {/* Resumo da Partida e Distribuição */}
       <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400">Selecionados:</span>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-400">Total Marcados Hoje:</span>
             <span
-              className={`font-black font-mono px-2 py-0.5 rounded-md ${
+              className={`font-black font-mono px-2.5 py-0.5 rounded-lg text-sm ${
                 hasEnoughPlayers
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
               }`}
             >
-              {totalSelected} / {neededPlayers} mín.
+              {totalSelected} atletas
             </span>
           </div>
 
-          <div className="flex items-center gap-1 text-[11px] text-slate-400">
-            <ShieldAlert className="w-3 h-3 text-amber-400" />
-            <span>
-              Goleiros: <strong className="text-amber-400">{totalGoalkeepers}</strong>{' '}
-              {totalGoalkeepers < 2 ? '(recomendado 2)' : '✔️'}
-            </span>
+          <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap">
+            <div className="flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-sky-400" />
+              <span>
+                Distribuição: <strong className="text-white font-mono">{teamASize} vs {teamBSize}</strong> (com reservas)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                Goleiros: <strong className="text-amber-400">{totalGoalkeepers}</strong>
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Botão Selecionar Todos / Desmarcar */}
-        <div className="flex flex-col gap-1">
+        <div className="shrink-0 pl-2">
           <button
             type="button"
             onClick={isAllSelected ? onDeselectAll : onSelectAll}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors shadow-sm"
           >
             {isAllSelected ? (
               <>
-                <Square className="w-3 h-3" />
+                <Square className="w-3.5 h-3.5" />
                 Desmarcar
               </>
             ) : (
               <>
-                <CheckSquare className="w-3 h-3 text-emerald-400" />
-                Todos
+                <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+                Marcar Todos
               </>
             )}
           </button>
@@ -121,8 +97,8 @@ export const DrawConfig: React.FC<DrawConfigProps> = ({
         rightIcon={<Sparkles className="w-4 h-4" />}
       >
         {hasEnoughPlayers
-          ? 'SORTEAR TIMES EQUILIBRADOS'
-          : `SELECIONE MAIS ${neededPlayers - totalSelected} JOGADOR(ES)`}
+          ? `SORTEAR OS ${totalSelected} ATLETAS EQUILIBRADOS`
+          : 'SELECIONE AO MENOS 2 ATLETAS'}
       </Button>
     </div>
   );

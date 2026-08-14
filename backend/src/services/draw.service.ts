@@ -31,24 +31,15 @@ export class DrawService {
   }
 
   /**
-   * Executa o sorteio de times equilibrados a partir de uma lista de IDs de jogadores.
+   * Executa o sorteio de times equilibrados a partir de TODOS os jogadores presentes.
+   * Todos os atletas selecionados entram no sorteio (distribuídos entre Time 1 e Time 2,
+   * incluindo os reservas de cada equipe).
    */
   public async drawTeams(dto: DrawRequestDTO): Promise<DrawResponseDTO> {
-    const { playerIds, playersPerTeam } = dto;
+    const { playerIds } = dto;
 
-    if (!playerIds || playerIds.length < 2) {
+    if (!playerIds || !Array.isArray(playerIds) || playerIds.length < 2) {
       throw new Error('É necessário selecionar pelo menos 2 jogadores para o sorteio.');
-    }
-
-    if (!playersPerTeam || playersPerTeam < 1) {
-      throw new Error('O número de jogadores por time deve ser no mínimo 1.');
-    }
-
-    const totalNeeded = playersPerTeam * 2;
-    if (playerIds.length < totalNeeded) {
-      throw new Error(
-        `Jogadores insuficientes para uma partida de ${playersPerTeam}x${playersPerTeam}. Selecionados: ${playerIds.length}, Necessários: ${totalNeeded}.`
-      );
     }
 
     // 1. Buscar dados internos dos jogadores (com notas calculadas sigilosamente no backend)
@@ -57,6 +48,8 @@ export class DrawService {
     if (allSelectedPlayers.length !== playerIds.length) {
       throw new Error('Um ou mais jogadores selecionados não foram encontrados no banco de dados.');
     }
+
+    const totalSelected = allSelectedPlayers.length;
 
     // 2. Separar Goleiros e Jogadores de Linha (respeitando escolha do dia se informada)
     const customGkSet = dto.goalkeeperIds ? new Set(dto.goalkeeperIds) : null;
@@ -89,36 +82,31 @@ export class DrawService {
       (a, b) => b.overallRating - a.overallRating
     );
 
-    // Quantos jogadores de linha cada time precisa
-    const fieldSlotsA = playersPerTeam - (gkA ? 1 : 0);
-    const fieldSlotsB = playersPerTeam - (gkB ? 1 : 0);
-    const totalFieldNeeded = fieldSlotsA + fieldSlotsB;
+    // 4. Distribuir 100% dos jogadores entre os dois elencos (Time 1 e Time 2)
+    const numGkA = gkA ? 1 : 0;
+    const numGkB = gkB ? 1 : 0;
 
-    if (availableFieldPlayers.length < totalFieldNeeded) {
-      throw new Error(
-        `Número insuficiente de jogadores de linha. Necessários: ${totalFieldNeeded}, Disponíveis: ${availableFieldPlayers.length}.`
-      );
-    }
+    // Elenco total equilibrado em tamanho (ex: 14 atletas -> 7 para cada lado)
+    const targetRosterA = Math.ceil(totalSelected / 2);
+    const targetRosterB = totalSelected - targetRosterA;
 
-    // Selecionar os melhores jogadores para o sorteio principal
-    const activeFieldPlayers = availableFieldPlayers.slice(0, totalFieldNeeded);
-    const reserves = availableFieldPlayers.slice(totalFieldNeeded);
+    const fieldSlotsA = Math.max(0, targetRosterA - numGkA);
+    const fieldSlotsB = Math.max(0, targetRosterB - numGkB);
 
-    // 4. Algoritmo de Distribuição (Snake Draft + Otimizador de Trocas)
+    // 5. Algoritmo de Distribuição (Snake Draft + Otimizador de Trocas / Hill Climbing)
     const { teamAField, teamBField, scoreA, scoreB } = this.balanceFieldPlayers(
-      activeFieldPlayers,
+      availableFieldPlayers,
       fieldSlotsA,
       fieldSlotsB,
       gkA?.overallRating ?? 0,
       gkB?.overallRating ?? 0
     );
 
-    // 5. Montar os times públicos (SEM EXPOR AS NOTAS INDIVIDUAIS)
+    // 6. Montar os times públicos (SEM EXPOR AS NOTAS INDIVIDUAIS)
     const publicGkA = this.toPublic(gkA);
     const publicGkB = this.toPublic(gkB);
     const publicTeamAField = teamAField.map((p) => this.toPublic(p)!);
     const publicTeamBField = teamBField.map((p) => this.toPublic(p)!);
-    const publicReserves = reserves.map((p) => this.toPublic(p)!);
 
     const teamA: PublicTeam = {
       name: 'Time 1 (Preto)',
@@ -148,17 +136,17 @@ export class DrawService {
     return {
       teamA,
       teamB,
-      reserves: publicReserves,
+      reserves: [],
       differenceScore,
       advantageTeam,
-      isEquilibrado: differenceScore <= 1.5,
+      isEquilibrado: differenceScore <= 2.0,
       drawnAt: new Date().toISOString(),
     };
   }
 
   /**
-   * Distribui jogadores de linha usando Snake Draft seguido de refinamento guloso (Swap Minimization)
-   * para minimizar |Score(A) - Score(B)| levando em consideração os goleiros.
+   * Distribui TODOS os jogadores usando Snake Draft seguido de refinamento guloso (Swap Minimization)
+   * para balancear a força total e as reservas de cada time.
    */
   private balanceFieldPlayers(
     players: PlayerInternal[],
