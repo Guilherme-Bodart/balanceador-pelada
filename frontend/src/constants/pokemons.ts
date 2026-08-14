@@ -105,4 +105,54 @@ export const POKEMON_PRESETS: PokemonPreset[] = [
     url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png',
     defaultPosition: 'FIELD',
   },
+  {
+    name: 'Tyranitar',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/248.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Steelix',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/208.png',
+    defaultPosition: 'GOALKEEPER',
+  },
+  {
+    name: 'Infernape',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Blaziken',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/257.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Sceptile',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/254.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Lapras',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/131.png',
+    defaultPosition: 'GOALKEEPER',
+  },
+  {
+    name: 'Electivire',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/466.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Zoroark',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/571.png',
+    defaultPosition: 'FIELD',
+  },
+  {
+    name: 'Onix',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png',
+    defaultPosition: 'GOALKEEPER',
+  },
+  {
+    name: 'Zeraora',
+    url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/807.png',
+    defaultPosition: 'FIELD',
+  },
 ];

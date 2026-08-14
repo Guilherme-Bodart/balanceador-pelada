@@ -200,7 +200,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
                 Escolha um Pokémon (Sem repetição):
               </span>
               <span className="text-[10px] text-emerald-400 font-medium">
-                20 disponíveis
+                {POKEMON_PRESETS.length} disponíveis
               </span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin">
