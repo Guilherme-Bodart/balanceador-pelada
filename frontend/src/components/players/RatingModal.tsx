@@ -3,7 +3,7 @@ import { Player } from '../../types';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { PlayerAvatar } from '../common/PlayerAvatar';
-import { Star, Award, CheckCircle2 } from 'lucide-react';
+import { Star, Award, CheckCircle2, Lock } from 'lucide-react';
 
 interface RatingModalProps {
   player: Player | null;
@@ -31,13 +31,13 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     try {
       setIsSubmitting(true);
       await onSubmitRating(player.id, rating);
-      setSuccessMsg(`Nota ${rating.toFixed(1)} atribuída com sucesso!`);
+      setSuccessMsg(`Sua avaliação (${rating.toFixed(1)}) foi salva com sucesso!`);
       setTimeout(() => {
         setSuccessMsg(null);
         onClose();
       }, 1200);
     } catch (error: any) {
-      alert(error.message || 'Erro ao atribuir nota.');
+      alert(error.message || 'Erro ao salvar avaliação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -47,8 +47,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Avaliar Jogador"
-      subtitle={`Atribua uma nota para ${player.name}`}
+      title="Avaliar Desempenho"
+      subtitle="Sua avaliação é 100% confidencial e usada para equilibrar as partidas."
       maxWidth="md"
     >
       {successMsg ? (
@@ -56,12 +56,12 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-3">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h4 className="text-lg font-bold text-white mb-1">Nota Registrada!</h4>
-          <p className="text-sm text-slate-300">{successMsg}</p>
+          <h4 className="text-lg font-bold text-white mb-1">Avaliação Registrada!</h4>
+          <p className="text-xs text-slate-300">{successMsg}</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Card Resumo do Jogador */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Atleta Sendo Avaliado */}
           <div className="flex items-center gap-3 p-3 bg-slate-900/80 rounded-2xl border border-slate-800">
             <PlayerAvatar
               name={player.name}
@@ -72,11 +72,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             <div>
               <h4 className="font-bold text-white text-sm">{player.name}</h4>
               <p className="text-xs text-slate-400">
-                Média Atual:{' '}
-                <span className="font-bold text-emerald-400">
-                  {player.overallRating.toFixed(1)}
-                </span>{' '}
-                ({player.ratingCount} avaliações)
+                {player.position === 'GOALKEEPER' ? '🧤 Goleiro' : '🏃 Jogador de Linha'}
               </p>
             </div>
           </div>
@@ -84,7 +80,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           {/* Seletor Visual de Nota */}
           <div className="text-center py-4 bg-slate-900/50 rounded-2xl border border-slate-800/80">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-              Nova Nota (1 a 10)
+              Sua Nota para este atleta (1 a 10)
             </span>
             <div className="flex items-center justify-center gap-2">
               <Star className="w-8 h-8 text-amber-400 fill-amber-400 animate-pulse" />
@@ -102,30 +98,18 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 step="0.5"
                 value={rating}
                 onChange={(e) => setRating(parseFloat(e.target.value))}
-                className="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                className="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
               <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
                 <span>1.0</span>
-                <span>5.0 (Padrão)</span>
-                <span>10.0</span>
+                <span>5.0 (Médio)</span>
+                <span>10.0 (Craque)</span>
               </div>
             </div>
 
-            {/* Projeção da Nova Média Cumulativa */}
-            <div className="mt-3 mx-4 p-2 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 flex items-center justify-between">
-              <span className="text-slate-400">Nova Média resultante:</span>
-              <span className="font-mono font-bold text-emerald-400">
-                {player.ratingCount === 0
-                  ? rating.toFixed(1)
-                  : (
-                      Math.round(
-                        ((player.overallRating * player.ratingCount + rating) /
-                          (player.ratingCount + 1)) *
-                          10
-                      ) / 10
-                    ).toFixed(1)}{' '}
-                ★ ({player.ratingCount + 1}º voto somado)
-              </span>
+            <div className="mt-3 mx-4 p-2 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Nenhum outro jogador verá a nota que você deu.</span>
             </div>
           </div>
 
@@ -142,7 +126,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                   onClick={() => setRating(val)}
                   className={`py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
                     rating === val
-                      ? 'bg-emerald-500 text-slate-950 shadow-glow-emerald scale-105'
+                      ? 'bg-amber-500 text-slate-950 shadow-md scale-105'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -164,12 +148,12 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </Button>
             <Button
               type="submit"
-              variant="glow"
+              variant="primary"
               className="flex-1"
               isLoading={isSubmitting}
               leftIcon={<Award className="w-4 h-4" />}
             >
-              Salvar Nota
+              Confirmar Voto
             </Button>
           </div>
         </form>

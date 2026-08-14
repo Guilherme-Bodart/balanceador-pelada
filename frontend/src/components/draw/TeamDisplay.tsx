@@ -2,7 +2,7 @@ import React from 'react';
 import { DrawResponse, Player } from '../../types';
 import { Badge } from '../common/Badge';
 import { PlayerAvatar } from '../common/PlayerAvatar';
-import { Star, ShieldAlert, Share2, CheckCircle2, AlertTriangle, UserCheck, RefreshCw } from 'lucide-react';
+import { ShieldAlert, Share2, CheckCircle2, AlertTriangle, UserCheck, RefreshCw, Scale } from 'lucide-react';
 import { Button } from '../common/Button';
 
 interface TeamDisplayProps {
@@ -16,7 +16,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
   onOpenShare,
   onRedraw,
 }) => {
-  const { teamA, teamB, reserves, differenceScore, isEquilibrado } = result;
+  const { teamA, teamB, reserves, differenceScore, advantageTeam, isEquilibrado } = result;
 
   const renderPlayerRow = (player: Player | null, index: number | string, isGk: boolean = false) => {
     if (!player) {
@@ -36,7 +36,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
         }`}
       >
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-          {/* Número / Indicador */}
+          {/* Indicador de Posição / Número */}
           <span
             className={`text-[10px] font-mono font-black w-4 text-center shrink-0 ${
               isGk ? 'text-amber-400' : 'text-slate-500'
@@ -66,17 +66,16 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
           </div>
         </div>
 
-        {/* Nota */}
-        <div
-          className={`shrink-0 flex items-center gap-0.5 font-mono font-bold text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-md border ${
+        {/* Badge de Posição Discreto */}
+        <span
+          className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-md border ${
             isGk
               ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-              : 'bg-slate-950/90 text-slate-300 border-slate-800'
+              : 'bg-slate-950/80 text-slate-400 border-slate-800'
           }`}
         >
-          <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
-          <span>{player.overallRating.toFixed(1)}</span>
-        </div>
+          {isGk ? 'Goleiro' : 'Linha'}
+        </span>
       </div>
     );
   };
@@ -86,7 +85,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
 
   return (
     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
-      {/* Banner Superior de Equilíbrio */}
+      {/* Banner Superior de Equilíbrio e Diferença de Força */}
       <div
         className={`p-3 rounded-2xl border flex items-center justify-between shadow-sm ${
           isEquilibrado
@@ -94,30 +93,33 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
             : 'bg-amber-950/50 border-amber-500/40 text-amber-300'
         }`}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           {isEquilibrado ? (
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
           ) : (
-            <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
             </div>
           )}
 
           <div className="min-w-0">
-            <h4 className="text-[11px] font-black uppercase tracking-wider text-white truncate">
-              {isEquilibrado ? 'Times Equilibrados' : 'Equilíbrio Razoável'}
+            <h4 className="text-xs font-black uppercase tracking-wider text-white truncate">
+              {isEquilibrado ? 'Times Equilibrados' : 'Equilíbrio Ajustado'}
             </h4>
-            <p className="text-[10px] text-slate-300 truncate">
-              Diferença: <strong className="text-white font-mono">{differenceScore.toFixed(1)} pts</strong>
+            <p className="text-[11px] text-slate-300 truncate">
+              {advantageTeam || `Diferença estimada: ${differenceScore.toFixed(1)} pts`}
             </p>
           </div>
         </div>
 
-        <Badge variant={isEquilibrado ? 'emerald' : 'amber'} size="sm" className="shrink-0">
-          Δ {differenceScore.toFixed(1)}
-        </Badge>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge variant={isEquilibrado ? 'emerald' : 'amber'} size="sm">
+            <Scale className="w-3 h-3 mr-1 inline" />
+            Δ {differenceScore.toFixed(1)} pts
+          </Badge>
+        </div>
       </div>
 
       {/* Duelo de Times: 2 Listas Lado a Lado com "X" no meio */}
@@ -134,21 +136,16 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
           {/* ================= TIME 1 (ESQUERDA) ================= */}
           <div className="space-y-2.5">
             {/* Header Time 1 */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-emerald-950/90 to-slate-900 border border-emerald-500/40 text-left min-h-[64px] flex flex-col justify-between">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-emerald-950/90 to-slate-900 border border-emerald-500/40 text-left min-h-[58px] flex flex-col justify-between">
               <div className="flex items-center gap-1">
                 <span className="text-xs">🟢</span>
                 <h3 className="font-extrabold text-white text-xs sm:text-sm tracking-tight truncate">
                   Time 1
                 </h3>
               </div>
-              <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono">
-                <span className="text-slate-400">
-                  Média: <strong className="text-emerald-400">{teamA.averageScore.toFixed(1)}</strong>
-                </span>
-                <span className="text-slate-400 hidden sm:inline">
-                  Soma: <strong className="text-white">{teamA.totalScore.toFixed(1)}</strong>
-                </span>
-              </div>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {teamA.totalPlayers} atletas escalados
+              </span>
             </div>
 
             {/* Seção Goleiro Time 1 */}
@@ -178,21 +175,16 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
           {/* ================= TIME 2 (DIREITA) ================= */}
           <div className="space-y-2.5">
             {/* Header Time 2 */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-sky-950/90 to-slate-900 border border-sky-500/40 text-left min-h-[64px] flex flex-col justify-between">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-sky-950/90 to-slate-900 border border-sky-500/40 text-left min-h-[58px] flex flex-col justify-between">
               <div className="flex items-center gap-1">
                 <span className="text-xs">🔵</span>
                 <h3 className="font-extrabold text-white text-xs sm:text-sm tracking-tight truncate">
                   Time 2
                 </h3>
               </div>
-              <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono">
-                <span className="text-slate-400">
-                  Média: <strong className="text-sky-400">{teamB.averageScore.toFixed(1)}</strong>
-                </span>
-                <span className="text-slate-400 hidden sm:inline">
-                  Soma: <strong className="text-white">{teamB.totalScore.toFixed(1)}</strong>
-                </span>
-              </div>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {teamB.totalPlayers} atletas escalados
+              </span>
             </div>
 
             {/* Seção Goleiro Time 2 */}
@@ -242,8 +234,8 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
                   <PlayerAvatar name={p.name} photoUrl={p.photoUrl} size="xs" />
                   <span className="text-slate-300 font-medium text-[11px] truncate">{p.name}</span>
                 </div>
-                <span className="font-mono text-[10px] text-slate-400 font-bold shrink-0">
-                  ★ {p.overallRating.toFixed(1)}
+                <span className="text-[10px] text-slate-500 font-medium shrink-0">
+                  {p.position === 'GOALKEEPER' ? '🧤 Gol' : '🏃 Linha'}
                 </span>
               </div>
             ))}

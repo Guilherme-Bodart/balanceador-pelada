@@ -1,16 +1,36 @@
 import { prisma } from '../config/prisma';
-import { CreatePlayerDTO, UpdatePlayerDTO, AddRatingDTO, PlayerWithRating, PlayerPosition } from '../types';
+import {
+  CreatePlayerDTO,
+  UpdatePlayerDTO,
+  AddRatingDTO,
+  PublicPlayerDTO,
+  PlayerInternal,
+  PlayerPosition,
+} from '../types';
 
 export class PlayerService {
   /**
-   * Formata e calcula a média geral de notas de um jogador.
-   * Regra de negócio: Se não houver notas, a média padrão é 5.0.
+   * Formata os dados públicos do jogador (SEM NOTAS NEM MÉDIAS para privacidade total).
    */
-  private formatPlayerWithRating(player: any): PlayerWithRating {
+  private toPublicPlayer(player: any): PublicPlayerDTO {
+    return {
+      id: player.id,
+      name: player.name,
+      photoUrl: player.photoUrl,
+      position: player.position as PlayerPosition,
+      createdAt: player.createdAt,
+      updatedAt: player.updatedAt,
+    };
+  }
+
+  /**
+   * Formata dados internos com média calculada (USADO EXCLUSIVAMENTE NO BACKEND PARA O ALGORITMO).
+   */
+  public formatInternalPlayer(player: any): PlayerInternal {
     const ratings = player.ratings || [];
     const ratingCount = ratings.length;
 
-    let overallRating = 5.0; // Default conforme especificação
+    let overallRating = 5.0; // Padrão neutro para cálculo interno de balanceamento
 
     if (ratingCount > 0) {
       const sum = ratings.reduce((acc: number, curr: any) => acc + curr.value, 0);
@@ -36,57 +56,48 @@ export class PlayerService {
   }
 
   /**
-   * Lista todos os jogadores ordenados por nome ou média.
+   * Lista todos os jogadores públicos (sem expor notas).
    */
-  public async getAllPlayers(): Promise<PlayerWithRating[]> {
+  public async getAllPlayers(): Promise<PublicPlayerDTO[]> {
     const players = await prisma.player.findMany({
-      include: {
-        ratings: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
       orderBy: { name: 'asc' },
     });
 
-    return players.map((p) => this.formatPlayerWithRating(p));
+    return players.map((p) => this.toPublicPlayer(p));
   }
 
   /**
-   * Busca um jogador por ID.
+   * Busca um jogador público por ID.
    */
-  public async getPlayerById(id: string): Promise<PlayerWithRating | null> {
+  public async getPlayerById(id: string): Promise<PublicPlayerDTO | null> {
     const player = await prisma.player.findUnique({
       where: { id },
-      include: {
-        ratings: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
     });
 
     if (!player) return null;
-    return this.formatPlayerWithRating(player);
+    return this.toPublicPlayer(player);
   }
 
   /**
-   * Busca múltiplos jogadores por IDs.
+   * Busca jogadores internos com suas notas para execução do algoritmo de sorteio (USO INTERNO).
    */
-  public async getPlayersByIds(ids: string[]): Promise<PlayerWithRating[]> {
+  public async getInternalPlayersByIds(ids: string[]): Promise<PlayerInternal[]> {
+    const idList = Array.isArray(ids) ? ids : [ids];
     const players = await prisma.player.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: idList } },
       include: {
         ratings: true,
       },
     });
 
-    return players.map((p) => this.formatPlayerWithRating(p));
+    return players.map((p) => this.formatInternalPlayer(p));
   }
 
   /**
-   * Cadastra um novo jogador no sistema.
+   * Cadastra um novo jogador no sistema (Inicia sem notas!).
    */
-  public async createPlayer(dto: CreatePlayerDTO): Promise<PlayerWithRating> {
-    const { name, photoUrl, position = 'FIELD', initialRating } = dto;
+  public async createPlayer(dto: CreatePlayerDTO): Promise<PublicPlayerDTO> {
+    const { name, photoUrl, position = 'FIELD' } = dto;
 
     if (!name || name.trim().length === 0) {
       throw new Error('O nome do jogador é obrigatório.');
@@ -107,28 +118,16 @@ export class PlayerService {
         name: name.trim(),
         photoUrl: photoUrl ? photoUrl.trim() : null,
         position: position === 'GOALKEEPER' ? 'GOALKEEPER' : 'FIELD',
-        ...(initialRating !== undefined && initialRating !== null
-          ? {
-              ratings: {
-                create: {
-                  value: Math.min(10, Math.max(1, Number(initialRating))),
-                },
-              },
-            }
-          : {}),
-      },
-      include: {
-        ratings: true,
       },
     });
 
-    return this.formatPlayerWithRating(createdPlayer);
+    return this.toPublicPlayer(createdPlayer);
   }
 
   /**
    * Atualiza os dados de um jogador.
    */
-  public async updatePlayer(id: string, dto: UpdatePlayerDTO): Promise<PlayerWithRating> {
+  public async updatePlayer(id: string, dto: UpdatePlayerDTO): Promise<PublicPlayerDTO> {
     const existing = await prisma.player.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Jogador não encontrado.');
@@ -156,14 +155,9 @@ export class PlayerService {
           position: dto.position === 'GOALKEEPER' ? 'GOALKEEPER' : 'FIELD',
         }),
       },
-      include: {
-        ratings: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
     });
 
-    return this.formatPlayerWithRating(updated);
+    return this.toPublicPlayer(updated);
   }
 
   /**
@@ -179,9 +173,10 @@ export class PlayerService {
   }
 
   /**
-   * Adiciona uma nova nota (1.0 a 10.0) para um jogador existente.
+   * Adiciona uma nova nota (1.0 a 10.0) de forma anônima e confidencial.
+   * Não expõe a média individual do jogador no retorno.
    */
-  public async addRating(playerId: string, dto: AddRatingDTO): Promise<PlayerWithRating> {
+  public async addRating(playerId: string, dto: AddRatingDTO): Promise<{ success: boolean; message: string }> {
     const { value } = dto;
     const numericValue = Number(value);
 
@@ -201,6 +196,9 @@ export class PlayerService {
       },
     });
 
-    return (await this.getPlayerById(playerId))!;
+    return {
+      success: true,
+      message: 'Avaliação registrada confidencialmente com sucesso.',
+    };
   }
 }

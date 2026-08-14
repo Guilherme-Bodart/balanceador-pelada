@@ -35,12 +35,11 @@ export class PlayerController {
 
   public create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { name, photoUrl, position, initialRating } = req.body;
+      const { name, photoUrl, position } = req.body;
       const player = await this.playerService.createPlayer({
         name,
         photoUrl,
         position,
-        initialRating: initialRating ? Number(initialRating) : undefined,
       });
 
       res.status(201).json({ success: true, data: player, message: 'Jogador cadastrado com sucesso!' });
@@ -76,11 +75,11 @@ export class PlayerController {
       const { id } = req.params;
       const { value } = req.body;
 
-      const player = await this.playerService.addRating(id, { value: Number(value) });
+      const result = await this.playerService.addRating(id, { value: Number(value) });
       res.status(200).json({
         success: true,
-        data: player,
-        message: `Nota ${value} adicionada com sucesso! Nova média: ${player.overallRating}`,
+        data: null,
+        message: `Sua avaliação (${Number(value).toFixed(1)}) foi registrada com sucesso de forma sigilosa!`,
       });
     } catch (error) {
       next(error);

@@ -3,7 +3,7 @@ import { Player, CreatePlayerInput, UpdatePlayerInput, ApiResponse } from '../ty
 
 export const playerService = {
   /**
-   * Busca a lista completa de jogadores cadastrados com suas médias.
+   * Busca a lista completa de jogadores cadastrados (dados públicos).
    */
   async getAll(): Promise<Player[]> {
     const response = await api.get<ApiResponse<Player[]>>('/players');
@@ -42,10 +42,9 @@ export const playerService = {
   },
 
   /**
-   * Adiciona uma nova nota (1.0 a 10.0) para o jogador.
+   * Adiciona uma nova nota (1.0 a 10.0) para o jogador de forma confidencial.
    */
-  async addRating(id: string, value: number): Promise<Player> {
-    const response = await api.post<ApiResponse<Player>>(`/players/${id}/ratings`, { value });
-    return response.data.data;
+  async addRating(id: string, value: number): Promise<void> {
+    await api.post(`/players/${id}/ratings`, { value });
   },
 };

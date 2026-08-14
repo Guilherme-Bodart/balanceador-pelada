@@ -30,13 +30,6 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   // Se o modo customizado de goleiro foi informado, usa ele; senão usa o padrão cadastrado
   const isGk = isCustomGoalkeeper !== undefined ? isCustomGoalkeeper : player.position === 'GOALKEEPER';
 
-  const getRatingBgColor = (score: number) => {
-    if (score >= 8.5) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
-    if (score >= 7.0) return 'text-sky-400 bg-sky-500/10 border-sky-500/30';
-    if (score >= 5.0) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
-    return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
-  };
-
   const handleCardClick = () => {
     if (selectable && onToggleSelect) {
       onToggleSelect(player.id);
@@ -48,7 +41,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     return (
       <div
         onClick={handleCardClick}
-        className={`relative rounded-2xl p-2 sm:p-2.5 transition-all duration-200 border cursor-pointer select-none flex flex-col justify-between min-h-[82px] ${
+        className={`relative rounded-2xl p-2 sm:p-2.5 transition-all duration-200 border cursor-pointer select-none flex flex-col justify-between min-h-[76px] ${
           isSelected
             ? 'bg-emerald-950/40 border-emerald-500/70 shadow-glow-emerald ring-1 ring-emerald-500/50'
             : 'glass-card glass-card-hover border-slate-800/80 opacity-70 hover:opacity-100'
@@ -75,19 +68,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             className="shrink-0"
           />
 
-          {/* Nome e Nota */}
+          {/* Nome e Posição (Sem exibição de nota) */}
           <div className="min-w-0 flex-1">
             <h4 className="font-bold text-white text-xs truncate leading-tight">
               {player.name}
             </h4>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span
-                className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-mono font-bold text-[10px] border ${getRatingBgColor(
-                  player.overallRating
-                )}`}
-              >
-                <Star className="w-2.5 h-2.5 fill-current" />
-                {player.overallRating.toFixed(1)}
+            <div className="mt-0.5">
+              <span className="text-[10px] text-slate-400 font-medium">
+                {isGk ? '🧤 Goleiro' : '🏃 Linha'}
               </span>
             </div>
           </div>
@@ -119,7 +107,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     );
   }
 
-  // Modo Gerenciamento (Cards da aba Jogadores)
+  // Modo Gerenciamento (Cards da aba Jogadores - Sem exibir nota pública)
   return (
     <div className="relative rounded-2xl p-3 sm:p-3.5 transition-all duration-200 border glass-card glass-card-hover border-slate-800/80 w-full flex flex-col justify-between">
       <div className="flex items-center gap-3 w-full">
@@ -131,7 +119,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           isGoalkeeper={isGk}
         />
 
-        {/* Informações */}
+        {/* Informações do Atleta */}
         <div className="flex-1 min-w-0">
           <h4 className="font-bold text-white text-sm truncate tracking-tight mb-1">
             {player.name}
@@ -141,24 +129,6 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             <Badge variant={isGk ? 'amber' : 'slate'} size="sm">
               {isGk ? '🧤 Goleiro' : '🏃 Linha'}
             </Badge>
-
-            <span className="text-[11px] text-slate-400 truncate">
-              {player.ratingCount === 0
-                ? 'Sem avaliações'
-                : `${player.ratingCount} ${player.ratingCount === 1 ? 'voto' : 'votos'}`}
-            </span>
-          </div>
-        </div>
-
-        {/* Nota Geral */}
-        <div className="shrink-0">
-          <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-xl border font-mono font-black text-xs sm:text-sm shadow-sm ${getRatingBgColor(
-              player.overallRating
-            )}`}
-          >
-            <Star className="w-3.5 h-3.5 fill-current" />
-            <span>{player.overallRating.toFixed(1)}</span>
           </div>
         </div>
       </div>
@@ -167,10 +137,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
       <div className="mt-3 pt-2.5 border-t border-slate-800/60 flex items-center justify-between text-xs">
         <button
           onClick={() => onRate?.(player)}
-          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg hover:bg-emerald-500/10 transition-colors"
+          className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all"
         >
-          <Star className="w-3.5 h-3.5" />
-          Avaliar
+          <Star className="w-3.5 h-3.5 fill-amber-400" />
+          <span>Votar Nota</span>
         </button>
 
         <div className="flex items-center gap-1">

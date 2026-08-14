@@ -19,34 +19,37 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
   if (!result) return null;
 
-  const { teamA, teamB, reserves, differenceScore } = result;
+  const { teamA, teamB, reserves, differenceScore, advantageTeam, isEquilibrado } = result;
 
   const generateShareText = () => {
     let text = `⚽ *TIMES SORTEADOS - PELADA PRO* ⚽\n`;
-    text += `⚖️ *Diferença:* ${differenceScore.toFixed(1)} pts (Equilíbrio Inteligente)\n\n`;
+    text += `⚖️ *Status:* ${isEquilibrado ? 'Times Equilibrados' : 'Equilíbrio Ajustado'}\n`;
+    if (advantageTeam) {
+      text += `📊 *Balanço:* ${advantageTeam}\n\n`;
+    } else {
+      text += `📊 *Diferença estimada:* ${differenceScore.toFixed(1)} pts\n\n`;
+    }
 
-    // Time A
-    text += `🟢 *${teamA.name.toUpperCase()}*\n`;
-    text += `📊 Média: ${teamA.averageScore.toFixed(1)} | Soma: ${teamA.totalScore.toFixed(1)}\n`;
+    // Time 1
+    text += `🟢 *${teamA.name.toUpperCase()}* (${teamA.totalPlayers} atletas)\n`;
     if (teamA.goalkeeper) {
-      text += `🧤 Goleiro: ${teamA.goalkeeper.name} (★ ${teamA.goalkeeper.overallRating.toFixed(1)})\n`;
+      text += `🧤 Goleiro: ${teamA.goalkeeper.name}\n`;
     }
     text += `🏃 Linha:\n`;
     teamA.fieldPlayers.forEach((p, idx) => {
-      text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+      text += `  ${idx + 1}. ${p.name}\n`;
     });
 
     text += `\n------------------------\n\n`;
 
-    // Time B
-    text += `🔵 *${teamB.name.toUpperCase()}*\n`;
-    text += `📊 Média: ${teamB.averageScore.toFixed(1)} | Soma: ${teamB.totalScore.toFixed(1)}\n`;
+    // Time 2
+    text += `🔵 *${teamB.name.toUpperCase()}* (${teamB.totalPlayers} atletas)\n`;
     if (teamB.goalkeeper) {
-      text += `🧤 Goleiro: ${teamB.goalkeeper.name} (★ ${teamB.goalkeeper.overallRating.toFixed(1)})\n`;
+      text += `🧤 Goleiro: ${teamB.goalkeeper.name}\n`;
     }
     text += `🏃 Linha:\n`;
     teamB.fieldPlayers.forEach((p, idx) => {
-      text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+      text += `  ${idx + 1}. ${p.name}\n`;
     });
 
     // Reservas
@@ -54,7 +57,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       text += `\n------------------------\n`;
       text += `🔄 *PRÓXIMOS / RESERVAS:*\n`;
       reserves.forEach((p, idx) => {
-        text += `  ${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
+        text += `  ${idx + 1}. ${p.name} (${p.position === 'GOALKEEPER' ? 'Goleiro' : 'Linha'})\n`;
       });
     }
 

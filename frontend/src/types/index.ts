@@ -1,12 +1,5 @@
 export type PlayerPosition = 'FIELD' | 'GOALKEEPER';
 
-export interface RatingEntity {
-  id: string;
-  value: number;
-  playerId: string;
-  createdAt: string;
-}
-
 export interface Player {
   id: string;
   name: string;
@@ -14,16 +7,12 @@ export interface Player {
   position: PlayerPosition;
   createdAt: string;
   updatedAt: string;
-  ratingCount: number;
-  overallRating: number; // Média calculada (5.0 padrão se sem notas)
-  ratings?: RatingEntity[];
 }
 
 export interface CreatePlayerInput {
   name: string;
   photoUrl?: string;
   position?: PlayerPosition;
-  initialRating?: number;
 }
 
 export interface UpdatePlayerInput {
@@ -37,8 +26,6 @@ export interface Team {
   goalkeeper: Player | null;
   fieldPlayers: Player[];
   totalPlayers: number;
-  totalScore: number;
-  averageScore: number;
 }
 
 export interface DrawResponse {
@@ -46,6 +33,7 @@ export interface DrawResponse {
   teamB: Team;
   reserves: Player[];
   differenceScore: number;
+  advantageTeam?: string;
   isEquilibrado: boolean;
   drawnAt: string;
 }

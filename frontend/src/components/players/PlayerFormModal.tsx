@@ -24,7 +24,6 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [position, setPosition] = useState<PlayerPosition>('FIELD');
-  const [initialRating, setInitialRating] = useState<number>(5.0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -38,7 +37,6 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       setName('');
       setPhotoUrl('');
       setPosition('FIELD');
-      setInitialRating(5.0);
     }
   }, [editingPlayer, isOpen]);
 
@@ -75,7 +73,6 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           name: name.trim(),
           photoUrl: photoUrl.trim() || undefined,
           position,
-          initialRating: Number(initialRating),
         });
       }
       onClose();
@@ -260,32 +257,6 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Nota Inicial (Apenas no cadastro) */}
-        {!editingPlayer && (
-          <div className="pt-2 border-t border-slate-800/80">
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Nota Inicial (Opcional)
-              </label>
-              <span className="text-xs font-mono font-bold text-emerald-400">
-                {initialRating.toFixed(1)}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1.0"
-              max="10.0"
-              step="0.5"
-              value={initialRating}
-              onChange={(e) => setInitialRating(parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-            />
-            <p className="text-[11px] text-slate-500 mt-1">
-              Se não informada, a média padrão do jogador será 5.0.
-            </p>
-          </div>
-        )}
 
         {/* Botões */}
         <div className="flex gap-3 pt-3">

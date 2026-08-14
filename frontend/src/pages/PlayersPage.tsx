@@ -4,7 +4,7 @@ import { PlayerCard } from '../components/players/PlayerCard';
 import { PlayerFormModal } from '../components/players/PlayerFormModal';
 import { RatingModal } from '../components/players/RatingModal';
 import { Button } from '../components/common/Button';
-import { UserPlus, Search, ShieldAlert, Star, Users } from 'lucide-react';
+import { UserPlus, Search, ShieldAlert, Users } from 'lucide-react';
 
 interface PlayersPageProps {
   players: Player[];
@@ -42,10 +42,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
 
   // Estatísticas Rápidas
   const totalGk = players.filter((p) => p.position === 'GOALKEEPER').length;
-  const avgRosterRating =
-    players.length > 0
-      ? (players.reduce((sum, p) => sum + p.overallRating, 0) / players.length).toFixed(1)
-      : '5.0';
+  const totalField = players.length - totalGk;
 
   const handleEdit = (player: Player) => {
     setEditingPlayer(player);
@@ -92,12 +89,12 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
         </div>
 
         <div className="glass-card rounded-2xl p-3 text-center border border-slate-800">
-          <Star className="w-4 h-4 text-yellow-400 mx-auto mb-1" />
-          <span className="text-lg font-black font-mono text-yellow-400 block">
-            {avgRosterRating}
+          <Users className="w-4 h-4 text-sky-400 mx-auto mb-1" />
+          <span className="text-lg font-black font-mono text-sky-400 block">
+            {totalField}
           </span>
           <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-            Média Geral
+            Linha
           </span>
         </div>
       </div>

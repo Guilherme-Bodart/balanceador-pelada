@@ -1,4 +1,10 @@
-import { PlayerWithRating, DrawRequestDTO, DrawResponseDTO, Team } from '../types';
+import {
+  PlayerInternal,
+  PublicPlayerDTO,
+  PublicTeam,
+  DrawRequestDTO,
+  DrawResponseDTO,
+} from '../types';
 import { PlayerService } from './player.service';
 
 /**
@@ -10,6 +16,18 @@ export class DrawService {
 
   constructor(playerService: PlayerService = new PlayerService()) {
     this.playerService = playerService;
+  }
+
+  private toPublic(player: PlayerInternal | null): PublicPlayerDTO | null {
+    if (!player) return null;
+    return {
+      id: player.id,
+      name: player.name,
+      photoUrl: player.photoUrl,
+      position: player.position,
+      createdAt: player.createdAt,
+      updatedAt: player.updatedAt,
+    };
   }
 
   /**
@@ -33,14 +51,14 @@ export class DrawService {
       );
     }
 
-    // 1. Buscar dados completos dos jogadores selecionados com suas médias calculadas
-    const allSelectedPlayers = await this.playerService.getPlayersByIds(playerIds);
+    // 1. Buscar dados internos dos jogadores (com notas calculadas sigilosamente no backend)
+    const allSelectedPlayers = await this.playerService.getInternalPlayersByIds(playerIds);
 
     if (allSelectedPlayers.length !== playerIds.length) {
       throw new Error('Um ou mais jogadores selecionados não foram encontrados no banco de dados.');
     }
 
-    // 2. Separar Goleiros e Jogadores de Linha (considerando personalização para esta partida se informada)
+    // 2. Separar Goleiros e Jogadores de Linha (respeitando escolha do dia se informada)
     const customGkSet = dto.goalkeeperIds ? new Set(dto.goalkeeperIds) : null;
 
     const goalkeepers = allSelectedPlayers
@@ -52,15 +70,13 @@ export class DrawService {
       .sort((a, b) => b.overallRating - a.overallRating);
 
     // 3. Alocação de Goleiros
-    let gkA: PlayerWithRating | null = null;
-    let gkB: PlayerWithRating | null = null;
-    const extraGoalkeepers: PlayerWithRating[] = [];
+    let gkA: PlayerInternal | null = null;
+    let gkB: PlayerInternal | null = null;
+    const extraGoalkeepers: PlayerInternal[] = [];
 
     if (goalkeepers.length >= 2) {
-      // O melhor goleiro vai para um time, o segundo melhor para o outro
       gkA = goalkeepers[0];
       gkB = goalkeepers[1];
-      // Se houver mais de 2 goleiros, os excedentes viram jogadores de linha disponíveis
       if (goalkeepers.length > 2) {
         extraGoalkeepers.push(...goalkeepers.slice(2));
       }
@@ -89,7 +105,7 @@ export class DrawService {
     const reserves = availableFieldPlayers.slice(totalFieldNeeded);
 
     // 4. Algoritmo de Distribuição (Snake Draft + Otimizador de Trocas)
-    const { teamAField, teamBField } = this.balanceFieldPlayers(
+    const { teamAField, teamBField, scoreA, scoreB } = this.balanceFieldPlayers(
       activeFieldPlayers,
       fieldSlotsA,
       fieldSlotsB,
@@ -97,17 +113,44 @@ export class DrawService {
       gkB?.overallRating ?? 0
     );
 
-    // 5. Montar os times e calcular estatísticas finais
-    const teamA = this.buildTeam('Time A (Preto)', gkA, teamAField);
-    const teamB = this.buildTeam('Time B (Branco)', gkB, teamBField);
+    // 5. Montar os times públicos (SEM EXPOR AS NOTAS INDIVIDUAIS)
+    const publicGkA = this.toPublic(gkA);
+    const publicGkB = this.toPublic(gkB);
+    const publicTeamAField = teamAField.map((p) => this.toPublic(p)!);
+    const publicTeamBField = teamBField.map((p) => this.toPublic(p)!);
+    const publicReserves = reserves.map((p) => this.toPublic(p)!);
 
-    const differenceScore = Math.round(Math.abs(teamA.totalScore - teamB.totalScore) * 100) / 100;
+    const teamA: PublicTeam = {
+      name: 'Time 1 (Preto)',
+      goalkeeper: publicGkA,
+      fieldPlayers: publicTeamAField,
+      totalPlayers: (publicGkA ? 1 : 0) + publicTeamAField.length,
+    };
+
+    const teamB: PublicTeam = {
+      name: 'Time 2 (Branco)',
+      goalkeeper: publicGkB,
+      fieldPlayers: publicTeamBField,
+      totalPlayers: (publicGkB ? 1 : 0) + publicTeamBField.length,
+    };
+
+    const differenceScore = Math.round(Math.abs(scoreA - scoreB) * 10) / 10;
+
+    let advantageTeam = 'Equilíbrio Perfeito';
+    if (differenceScore > 0) {
+      if (scoreA > scoreB) {
+        advantageTeam = `Time 1 (+${differenceScore.toFixed(1)} pts de vantagem)`;
+      } else {
+        advantageTeam = `Time 2 (+${differenceScore.toFixed(1)} pts de vantagem)`;
+      }
+    }
 
     return {
       teamA,
       teamB,
-      reserves,
+      reserves: publicReserves,
       differenceScore,
+      advantageTeam,
       isEquilibrado: differenceScore <= 1.5,
       drawnAt: new Date().toISOString(),
     };
@@ -118,17 +161,16 @@ export class DrawService {
    * para minimizar |Score(A) - Score(B)| levando em consideração os goleiros.
    */
   private balanceFieldPlayers(
-    players: PlayerWithRating[],
+    players: PlayerInternal[],
     slotsA: number,
     slotsB: number,
     gkScoreA: number,
     gkScoreB: number
-  ): { teamAField: PlayerWithRating[]; teamBField: PlayerWithRating[] } {
-    const listA: PlayerWithRating[] = [];
-    const listB: PlayerWithRating[] = [];
+  ): { teamAField: PlayerInternal[]; teamBField: PlayerInternal[]; scoreA: number; scoreB: number } {
+    const listA: PlayerInternal[] = [];
+    const listB: PlayerInternal[] = [];
 
-    // Passo A: Snake Draft Inicial (A, B, B, A, A, B, B, A...)
-    // Se o Time A já começou com goleiro de nota maior, começamos o Snake dando prioridade ao Time B
+    // Snake Draft Inicial
     let turnToB = gkScoreA > gkScoreB;
 
     for (let i = 0; i < players.length; i++) {
@@ -146,19 +188,17 @@ export class DrawService {
         listB.push(player);
       }
 
-      // Inverte o turno no padrão Snake (1, 2, 2, 2...)
       if ((i + 1) % 2 === 0) {
         turnToB = !turnToB;
       }
     }
 
-    // Passo B: Otimizador de Trocas (Hill Climbing / Swap Optimizer)
-    // Testa todas as permutações de troca 1-a-1 entre time A e time B para encontrar a menor diferença de soma
+    // Otimizador de Trocas (Swap Optimizer)
     let improved = true;
     let bestA = [...listA];
     let bestB = [...listB];
 
-    const calculateDelta = (aList: PlayerWithRating[], bList: PlayerWithRating[]) => {
+    const calculateDelta = (aList: PlayerInternal[], bList: PlayerInternal[]) => {
       const scoreA = gkScoreA + aList.reduce((acc, p) => acc + p.overallRating, 0);
       const scoreB = gkScoreB + bList.reduce((acc, p) => acc + p.overallRating, 0);
       return Math.abs(scoreA - scoreB);
@@ -166,7 +206,6 @@ export class DrawService {
 
     let bestDelta = calculateDelta(bestA, bestB);
 
-    // Itera até que nenhuma troca unitária consiga reduzir ainda mais a disparidade
     while (improved) {
       improved = false;
 
@@ -175,13 +214,11 @@ export class DrawService {
           const testA = [...bestA];
           const testB = [...bestB];
 
-          // Realiza swap temporário
           testA[i] = bestB[j];
           testB[j] = bestA[i];
 
           const newDelta = calculateDelta(testA, testB);
 
-          // Se a troca diminuir a diferença matemática, adota a nova configuração
           if (newDelta < bestDelta - 0.001) {
             bestA = testA;
             bestB = testB;
@@ -194,31 +231,14 @@ export class DrawService {
       }
     }
 
-    // Ordena os jogadores de cada time por nota para exibição elegante
-    bestA.sort((a, b) => b.overallRating - a.overallRating);
-    bestB.sort((a, b) => b.overallRating - a.overallRating);
+    const finalScoreA = gkScoreA + bestA.reduce((acc, p) => acc + p.overallRating, 0);
+    const finalScoreB = gkScoreB + bestB.reduce((acc, p) => acc + p.overallRating, 0);
 
     return {
       teamAField: bestA,
       teamBField: bestB,
-    };
-  }
-
-  /**
-   * Constrói o objeto estruturado do Time com métricas consolidadas.
-   */
-  private buildTeam(name: string, goalkeeper: PlayerWithRating | null, fieldPlayers: PlayerWithRating[]): Team {
-    const allPlayers = goalkeeper ? [goalkeeper, ...fieldPlayers] : [...fieldPlayers];
-    const totalScore = allPlayers.reduce((sum, p) => sum + p.overallRating, 0);
-    const averageScore = allPlayers.length > 0 ? totalScore / allPlayers.length : 0;
-
-    return {
-      name,
-      goalkeeper,
-      fieldPlayers,
-      totalPlayers: allPlayers.length,
-      totalScore: Math.round(totalScore * 100) / 100,
-      averageScore: Math.round(averageScore * 100) / 100,
+      scoreA: finalScoreA,
+      scoreB: finalScoreB,
     };
   }
 }

@@ -7,7 +7,8 @@ export interface RatingEntity {
   createdAt: Date;
 }
 
-export interface PlayerWithRating {
+// Entidade completa interna no backend (com notas e média para cálculo do algoritmo)
+export interface PlayerInternal {
   id: string;
   name: string;
   photoUrl: string | null;
@@ -15,15 +16,24 @@ export interface PlayerWithRating {
   createdAt: Date;
   updatedAt: Date;
   ratingCount: number;
-  overallRating: number; // Média calculada (default 5.0 se sem notas)
+  overallRating: number; // Usado estritamente no backend para o algoritmo de equilíbrio
   ratings?: RatingEntity[];
+}
+
+// DTO público retornado nas APIs do frontend (TOTALMENTE SEM NOTAS nem médias individuais)
+export interface PublicPlayerDTO {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  position: PlayerPosition;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreatePlayerDTO {
   name: string;
   photoUrl?: string;
   position?: PlayerPosition;
-  initialRating?: number;
 }
 
 export interface UpdatePlayerDTO {
@@ -37,25 +47,25 @@ export interface AddRatingDTO {
 }
 
 export interface DrawRequestDTO {
-  playerIds: string[]; // IDs dos jogadores que vão participar hoje
+  playerIds: string[]; // IDs dos jogadores participantes
   playersPerTeam: number; // Ex: 5 para 5x5, 6 para 6x6
-  goalkeeperIds?: string[]; // IDs específicos designados como goleiros para ESTA partida
+  goalkeeperIds?: string[]; // IDs específicos designados como goleiros hoje
 }
 
-export interface Team {
+// Time público sem expor as notas individuais dos atletas
+export interface PublicTeam {
   name: string;
-  goalkeeper: PlayerWithRating | null;
-  fieldPlayers: PlayerWithRating[];
+  goalkeeper: PublicPlayerDTO | null;
+  fieldPlayers: PublicPlayerDTO[];
   totalPlayers: number;
-  totalScore: number;
-  averageScore: number;
 }
 
 export interface DrawResponseDTO {
-  teamA: Team;
-  teamB: Team;
-  reserves: PlayerWithRating[];
-  differenceScore: number; // Diferença absoluta da soma das notas entre os times
+  teamA: PublicTeam;
+  teamB: PublicTeam;
+  reserves: PublicPlayerDTO[];
+  differenceScore: number; // Diferença de pontuação entre as equipes
+  advantageTeam?: string; // Ex: "Time 1 (+0.5 pts)" ou "Empate Técnico"
   isEquilibrado: boolean;
   drawnAt: string;
 }
