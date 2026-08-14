@@ -39,14 +39,14 @@ export const RulesPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Regra 3: Sistema de Notas e Média 5.0 */}
+      {/* Regra 3: Sistema de Votação Confidencial e Nota Inicial Nula */}
       <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-2">
         <div className="flex items-center gap-2 text-yellow-400 font-bold text-sm">
           <Star className="w-4 h-4" />
-          <span>3. Sistema de Notas e Média Padrão (5.0)</span>
+          <span>3. Votação Confidencial e Nota Inicial Nula</span>
         </div>
         <p>
-          Qualquer participante pode receber notas de 1.0 a 10.0. Caso um jogador recém-cadastrado ainda não possua nenhuma nota registrada, o sistema assume automaticamente a nota neutra padrão de <strong>5.0</strong>.
+          Ao cadastrar um novo atleta, ele inicia com <strong>nota nula (sem notas)</strong> até receber suas primeiras avaliações. As notas individuais são 100% confidenciais e sigilosas, sendo utilizadas exclusivamente pelo algoritmo para calcular o equilíbrio das partidas sem expor a média de ninguém!
         </p>
       </div>
 
