@@ -1,15 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Player, PlayerPosition, CreatePlayerInput, UpdatePlayerInput } from '../../types';
-import { Modal } from '../common/Modal';
-import { Button } from '../common/Button';
-import { PlayerAvatar } from '../common/PlayerAvatar';
-import { POKEMON_PRESETS, PokemonPreset } from '../../constants/pokemons';
-import { User, ShieldAlert, Sparkles, Image as ImageIcon, Lock, Activity } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Player,
+  PlayerPosition,
+  CreatePlayerInput,
+  UpdatePlayerInput,
+} from "../../types";
+import { Modal } from "../common/Modal";
+import { Button } from "../common/Button";
+import { PlayerAvatar } from "../common/PlayerAvatar";
+import { POKEMON_PRESETS, PokemonPreset } from "../../constants/pokemons";
+import {
+  User,
+  ShieldAlert,
+  Sparkles,
+  Image as ImageIcon,
+  Lock,
+  Activity,
+} from "lucide-react";
 
 interface PlayerFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSavePlayer: (data: CreatePlayerInput | UpdatePlayerInput, id?: string) => Promise<void>;
+  onSavePlayer: (
+    data: CreatePlayerInput | UpdatePlayerInput,
+    id?: string,
+  ) => Promise<void>;
   editingPlayer?: Player | null;
   usedPhotoUrls?: string[];
 }
@@ -21,9 +36,9 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
   editingPlayer,
   usedPhotoUrls = [],
 }) => {
-  const [name, setName] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
-  const [position, setPosition] = useState<PlayerPosition>('FIELD');
+  const [name, setName] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [position, setPosition] = useState<PlayerPosition>("FIELD");
   const [physicalRating, setPhysicalRating] = useState<number>(5.0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -32,13 +47,13 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
     setErrorMsg(null);
     if (editingPlayer) {
       setName(editingPlayer.name);
-      setPhotoUrl(editingPlayer.photoUrl || '');
+      setPhotoUrl(editingPlayer.photoUrl || "");
       setPosition(editingPlayer.position);
       setPhysicalRating(editingPlayer.physicalRating ?? 5.0);
     } else {
-      setName('');
-      setPhotoUrl('');
-      setPosition('FIELD');
+      setName("");
+      setPhotoUrl("");
+      setPosition("FIELD");
       setPhysicalRating(5.0);
     }
   }, [editingPlayer, isOpen]);
@@ -56,7 +71,9 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
     if (!name.trim()) return;
 
     if (photoUrl && isUrlInUse(photoUrl)) {
-      setErrorMsg('Este avatar/foto já está em uso por outro atleta. Escolha um diferente.');
+      setErrorMsg(
+        "Este avatar/foto já está em uso por outro atleta. Escolha um diferente.",
+      );
       return;
     }
 
@@ -70,7 +87,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             position,
             physicalRating,
           },
-          editingPlayer.id
+          editingPlayer.id,
         );
       } else {
         await onSavePlayer({
@@ -82,7 +99,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      setErrorMsg(error.message || 'Erro ao salvar jogador.');
+      setErrorMsg(error.message || "Erro ao salvar jogador.");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,11 +109,11 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingPlayer ? 'Editar Jogador' : 'Novo Jogador'}
+      title={editingPlayer ? "Editar Jogador" : "Novo Jogador"}
       subtitle={
         editingPlayer
-          ? 'Atualize as informações do atleta'
-          : 'Cadastre um novo atleta para o elenco'
+          ? "Atualize as informações do atleta"
+          : "Cadastre um novo atleta para o elenco"
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,11 +151,11 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
-              onClick={() => setPosition('FIELD')}
+              onClick={() => setPosition("FIELD")}
               className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-semibold text-sm transition-all ${
-                position === 'FIELD'
-                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
+                position === "FIELD"
+                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
               }`}
             >
               <span>🏃</span>
@@ -147,11 +164,11 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
 
             <button
               type="button"
-              onClick={() => setPosition('GOALKEEPER')}
+              onClick={() => setPosition("GOALKEEPER")}
               className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-semibold text-sm transition-all ${
-                position === 'GOALKEEPER'
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-sm'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
+                position === "GOALKEEPER"
+                  ? "bg-amber-500/20 border-amber-500 text-amber-400 shadow-sm"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
               }`}
             >
               <ShieldAlert className="w-4 h-4" />
@@ -183,7 +200,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           />
 
           <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-            <span>1.0 (Cança rápido)</span>
+            <span>1.0 (Cansa rápido)</span>
             <span>5.0 (Médio)</span>
             <span>10.0 (Gás infinito)</span>
           </div>
@@ -196,10 +213,10 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           </label>
           <div className="flex items-center gap-2.5 mb-2">
             <PlayerAvatar
-              name={name || 'Atleta'}
+              name={name || "Atleta"}
               photoUrl={photoUrl}
               size="md"
-              isGoalkeeper={position === 'GOALKEEPER'}
+              isGoalkeeper={position === "GOALKEEPER"}
             />
             <div className="relative flex-1">
               <input
@@ -212,8 +229,8 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
                 }}
                 className={`w-full bg-slate-900/90 border rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none text-xs ${
                   isUrlInUse(photoUrl)
-                    ? 'border-rose-500/80 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
-                    : 'border-slate-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                    ? "border-rose-500/80 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                    : "border-slate-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                 }`}
               />
               <ImageIcon className="absolute right-3.5 top-3 w-4 h-4 text-slate-500 pointer-events-none" />
@@ -261,10 +278,10 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
                     title={isTaken ? `${preset.name} (Já em uso)` : preset.name}
                     className={`relative group flex flex-col items-center shrink-0 p-1 rounded-xl transition-all ${
                       isSelected
-                        ? 'bg-emerald-500/20 border-2 border-emerald-500 scale-105 shadow-glow-emerald'
+                        ? "bg-emerald-500/20 border-2 border-emerald-500 scale-105 shadow-glow-emerald"
                         : isTaken
-                        ? 'bg-slate-900/30 border border-slate-800/40 opacity-30 cursor-not-allowed grayscale'
-                        : 'bg-slate-900/60 border border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
+                          ? "bg-slate-900/30 border border-slate-800/40 opacity-30 cursor-not-allowed grayscale"
+                          : "bg-slate-900/60 border border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-lg overflow-hidden flex items-center justify-center p-0.5">
@@ -309,7 +326,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             isLoading={isSubmitting}
             leftIcon={<Sparkles className="w-4 h-4" />}
           >
-            {editingPlayer ? 'Atualizar' : 'Cadastrar'}
+            {editingPlayer ? "Atualizar" : "Cadastrar"}
           </Button>
         </div>
       </form>
