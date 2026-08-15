@@ -248,6 +248,9 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
                   >
                     <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span>Avaliar</span>
+                    <span className="text-[10px] font-mono text-amber-400/80 font-normal">
+                      ({player.ratingCount})
+                    </span>
                   </button>
 
                   <button
@@ -277,18 +280,19 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
       {/* ================= MODAIS ================= */}
       <PlayerFormModal
         isOpen={isFormOpen}
+        editingPlayer={editingPlayer}
         onClose={() => {
           setIsFormOpen(false);
           setEditingPlayer(null);
         }}
         onSavePlayer={onSavePlayer}
-        editingPlayer={editingPlayer}
         usedPhotoUrls={players.map((p) => p.photoUrl).filter(Boolean) as string[]}
       />
 
+      {/* Modal de Avaliação Confidencial com referência dinâmica */}
       <RatingModal
         isOpen={!!ratingPlayer}
-        player={ratingPlayer}
+        player={ratingPlayer ? (players.find((p) => p.id === ratingPlayer.id) || ratingPlayer) : null}
         onClose={() => setRatingPlayer(null)}
         onSubmitRating={onRatePlayer}
       />

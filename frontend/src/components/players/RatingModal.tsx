@@ -131,7 +131,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 <div className="flex items-center justify-center gap-2">
                   <Zap className="w-7 h-7 text-amber-400 fill-amber-400 animate-pulse" />
                   <span className="text-5xl font-extrabold text-white font-mono tracking-tight">
-                    {rating.toFixed(1)}
+                    {Math.round(rating * 10)}
                   </span>
                 </div>
 
@@ -147,9 +147,9 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                     className="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                    <span>1.0 (Iniciante)</span>
-                    <span>5.0 (Médio)</span>
-                    <span>10.0 (Lendário)</span>
+                    <span>10 (Iniciante)</span>
+                    <span>50 (Médio)</span>
+                    <span>100 (Lendário)</span>
                   </div>
                 </div>
 
@@ -176,7 +176,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                           : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                       }`}
                     >
-                      {val.toFixed(1)}
+                      {Math.round(val * 10)}
                     </button>
                   ))}
                 </div>
