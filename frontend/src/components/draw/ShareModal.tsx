@@ -1,128 +1,93 @@
 import React, { useState } from 'react';
-import { DrawResponse } from '../../types';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { Copy, Check, Send } from 'lucide-react';
-import { getRankInfo } from '../../constants/ranks';
+import { DrawResponse } from '../../types';
+import { Copy, Check } from 'lucide-react';
 
 interface ShareModalProps {
-  result: DrawResponse | null;
   isOpen: boolean;
   onClose: () => void;
+  drawData: DrawResponse | null;
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({
-  result,
   isOpen,
   onClose,
+  drawData,
 }) => {
   const [copied, setCopied] = useState(false);
 
-  if (!result) return null;
+  if (!drawData) return null;
 
-  const { teamA, teamB, reserves, differenceScore, advantageTeam, isEquilibrado } = result;
+  const generateShareText = (): string => {
+    const { teamA, teamB, differenceScore, isEquilibrado } = drawData;
 
-  const generateShareText = () => {
-    let text = `⚽ *TIMES SORTEADOS - PELADA PRO* ⚽\n`;
-    text += `⚖️ *Status:* ${isEquilibrado ? 'Times Equilibrados' : 'Equilíbrio Ajustado'}\n`;
-    if (advantageTeam) {
-      text += `📊 *Balanço:* ${advantageTeam}\n\n`;
-    } else {
-      text += `📊 *Diferença estimada:* ${differenceScore.toFixed(1)} pts\n\n`;
-    }
+    let text = `⚽ *SORTEIO DE TIMES - PELADA PRO* ⚽\n`;
+    text += `⚖️ Status: ${isEquilibrado ? '✅ Equilibrado' : '⚠️ Vantagem Leve'} (Dif: ${differenceScore.toFixed(1)})\n\n`;
 
-    // Time 1
-    text += `🟢 *${teamA.name.toUpperCase()}* (${teamA.totalPlayers} atletas)\n`;
+    text += `🔴 *TIME VERMELHO* (${teamA.fieldPlayers.length + (teamA.goalkeeper ? 1 : 0)} jogadores):\n`;
     if (teamA.goalkeeper) {
-      const r = getRankInfo(teamA.goalkeeper.overallRating);
-      text += `🧤 Goleiro: ${teamA.goalkeeper.name} [Rank ${r.rank}]\n`;
+      text += `🧤 Goleiro: ${teamA.goalkeeper.name} (★ ${teamA.goalkeeper.overallRating.toFixed(1)})\n`;
     }
-    text += `🏃 Linha:\n`;
     teamA.fieldPlayers.forEach((p, idx) => {
-      const r = getRankInfo(p.overallRating);
-      text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
+      text += `${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
     });
 
-    text += `\n------------------------\n\n`;
-
-    // Time 2
-    text += `🔵 *${teamB.name.toUpperCase()}* (${teamB.totalPlayers} atletas)\n`;
+    text += `\n🔵 *TIME AZUL* (${teamB.fieldPlayers.length + (teamB.goalkeeper ? 1 : 0)} jogadores):\n`;
     if (teamB.goalkeeper) {
-      const r = getRankInfo(teamB.goalkeeper.overallRating);
-      text += `🧤 Goleiro: ${teamB.goalkeeper.name} [Rank ${r.rank}]\n`;
+      text += `🧤 Goleiro: ${teamB.goalkeeper.name} (★ ${teamB.goalkeeper.overallRating.toFixed(1)})\n`;
     }
-    text += `🏃 Linha:\n`;
     teamB.fieldPlayers.forEach((p, idx) => {
-      const r = getRankInfo(p.overallRating);
-      text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
+      text += `${idx + 1}. ${p.name} (★ ${p.overallRating.toFixed(1)})\n`;
     });
 
-    // Reservas (se houver)
-    if (reserves.length > 0) {
-      text += `\n------------------------\n`;
-      text += `🔄 *PRÓXIMOS / RESERVAS:*\n`;
-      reserves.forEach((p, idx) => {
-        const r = getRankInfo(p.overallRating);
-        text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
-      });
-    }
-
-    text += `\n🏆 *Sorteador de Times Pro* - Boa pelada a todos! ⚽🔥`;
+    text += `\nGerado pelo *Sorteador PRO Pelada* 🚀`;
     return text;
   };
 
   const shareText = generateShareText();
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(shareText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleWhatsApp = () => {
-    const encoded = encodeURIComponent(shareText);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      alert('Erro ao copiar para a área de transferência.');
+    }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Compartilhar Escalação"
-      subtitle="Envie os times com Ranks no grupo da pelada"
-      maxWidth="md"
-    >
-      <div className="space-y-4">
-        {/* Caixa de Texto Formatada */}
-        <div className="relative">
-          <textarea
-            readOnly
-            value={shareText}
-            rows={12}
-            className="w-full bg-slate-900 border border-slate-700/80 rounded-2xl p-3.5 text-xs font-mono text-slate-300 leading-relaxed focus:outline-none select-all"
-          />
+    <Modal isOpen={isOpen} onClose={onClose} title="Compartilhar Escalação" maxWidth="md">
+      <div className="space-y-4 pt-1">
+        <p className="text-xs text-slate-300">
+          Copie a escalação formatada abaixo e envie direto no grupo do WhatsApp da pelada:
+        </p>
+
+        {/* Pré-visualização do Texto Formatado */}
+        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 font-mono text-xs text-slate-200 whitespace-pre-wrap max-h-64 overflow-y-auto selection:bg-emerald-500 selection:text-slate-950">
+          {shareText}
         </div>
 
-        {/* Botões de Ação */}
-        <div className="flex gap-3">
+        {/* Botão de Copiar */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
           <Button
             type="button"
-            variant="secondary"
-            className="flex-1"
-            onClick={handleCopy}
-            leftIcon={copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            variant="ghost"
+            size="md"
+            onClick={onClose}
           >
-            {copied ? 'Copiado!' : 'Copiar Texto'}
+            Fechar
           </Button>
 
           <Button
             type="button"
             variant="glow"
-            className="flex-1"
-            onClick={handleWhatsApp}
-            leftIcon={<Send className="w-4 h-4" />}
+            size="md"
+            onClick={handleCopy}
+            leftIcon={copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
           >
-            Abrir WhatsApp
+            {copied ? 'Copiado para o WhatsApp!' : 'Copiar Escalação'}
           </Button>
         </div>
       </div>

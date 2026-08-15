@@ -68,25 +68,28 @@ export class DrawService {
       .filter((p) => (customGkSet ? !customGkSet.has(p.id) : p.position !== 'GOALKEEPER'))
       .sort((a, b) => b.overallRating - a.overallRating);
 
-    // 3. Alocação de Goleiros
+    // 3. Alocação de Goleiros (com alternância dinâmica)
     let gkA: PlayerInternal | null = null;
     let gkB: PlayerInternal | null = null;
     const extraGoalkeepers: PlayerInternal[] = [];
 
     if (goalkeepers.length >= 2) {
-      gkA = goalkeepers[0];
-      gkB = goalkeepers[1];
+      const swapGk = Math.random() < 0.5;
+      gkA = swapGk ? goalkeepers[1] : goalkeepers[0];
+      gkB = swapGk ? goalkeepers[0] : goalkeepers[1];
       if (goalkeepers.length > 2) {
         extraGoalkeepers.push(...goalkeepers.slice(2));
       }
     } else if (goalkeepers.length === 1) {
-      gkA = goalkeepers[0];
+      if (Math.random() < 0.5) {
+        gkA = goalkeepers[0];
+      } else {
+        gkB = goalkeepers[0];
+      }
     }
 
-    // Unir excedentes de goleiros aos jogadores de linha e reordenar
-    const availableFieldPlayers = [...fieldPlayers, ...extraGoalkeepers].sort(
-      (a, b) => b.overallRating - a.overallRating
-    );
+    // Unir excedentes de goleiros aos jogadores de linha
+    const availableFieldPlayers = [...fieldPlayers, ...extraGoalkeepers];
 
     // 4. Distribuir 100% dos jogadores entre os dois elencos (Time 1 e Time 2)
     const numGkA = gkA ? 1 : 0;
@@ -99,7 +102,7 @@ export class DrawService {
     const fieldSlotsA = Math.max(0, targetRosterA - numGkA);
     const fieldSlotsB = Math.max(0, targetRosterB - numGkB);
 
-    // 5. Algoritmo de Distribuição (Snake Draft + Otimizador de Trocas / Hill Climbing)
+    // 5. Algoritmo de Distribuição Estocástica Balanceada
     const { teamAField, teamBField, scoreA, scoreB } = this.balanceFieldPlayers(
       availableFieldPlayers,
       fieldSlotsA,
@@ -151,8 +154,9 @@ export class DrawService {
   }
 
   /**
-   * Distribui TODOS os jogadores usando Snake Draft seguido de refinamento guloso (Swap Minimization)
-   * para balancear a força total e as reservas de cada time.
+   * Distribui os jogadores gerando múltiplos candidatos balanceados e selecionando
+   * estocasticamente entre as melhores soluções, garantindo alta variação entre sorteios
+   * sem perder o equilíbrio matemático de força.
    */
   private balanceFieldPlayers(
     players: PlayerInternal[],
@@ -161,36 +165,9 @@ export class DrawService {
     gkScoreA: number,
     gkScoreB: number
   ): { teamAField: PlayerInternal[]; teamBField: PlayerInternal[]; scoreA: number; scoreB: number } {
-    const listA: PlayerInternal[] = [];
-    const listB: PlayerInternal[] = [];
-
-    // Snake Draft Inicial
-    let turnToB = gkScoreA > gkScoreB;
-
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
-      const canAddToA = listA.length < slotsA;
-      const canAddToB = listB.length < slotsB;
-
-      if (turnToB && canAddToB) {
-        listB.push(player);
-      } else if (!turnToB && canAddToA) {
-        listA.push(player);
-      } else if (canAddToA) {
-        listA.push(player);
-      } else if (canAddToB) {
-        listB.push(player);
-      }
-
-      if ((i + 1) % 2 === 0) {
-        turnToB = !turnToB;
-      }
+    if (players.length === 0) {
+      return { teamAField: [], teamBField: [], scoreA: gkScoreA, scoreB: gkScoreB };
     }
-
-    // Otimizador de Trocas (Swap Optimizer)
-    let improved = true;
-    let bestA = [...listA];
-    let bestB = [...listB];
 
     const calculateDelta = (aList: PlayerInternal[], bList: PlayerInternal[]) => {
       const scoreA = gkScoreA + aList.reduce((acc, p) => acc + p.overallRating, 0);
@@ -198,41 +175,130 @@ export class DrawService {
       return Math.abs(scoreA - scoreB);
     };
 
-    let bestDelta = calculateDelta(bestA, bestB);
+    interface CandidateSolution {
+      teamAField: PlayerInternal[];
+      teamBField: PlayerInternal[];
+      scoreA: number;
+      scoreB: number;
+      delta: number;
+      signature: string;
+    }
 
-    while (improved) {
-      improved = false;
+    const candidatePool: CandidateSolution[] = [];
+    const seenSignatures = new Set<string>();
 
-      for (let i = 0; i < bestA.length; i++) {
-        for (let j = 0; j < bestB.length; j++) {
-          const testA = [...bestA];
-          const testB = [...bestB];
+    const ITERATIONS = 80;
 
-          testA[i] = bestB[j];
-          testB[j] = bestA[i];
+    for (let iter = 0; iter < ITERATIONS; iter++) {
+      // 1. Embaralhamento com micro-jitter para jogadores parelhos
+      const shuffledDraft = [...players].sort((a, b) => {
+        const jitterA = a.overallRating + (Math.random() - 0.5) * 0.8;
+        const jitterB = b.overallRating + (Math.random() - 0.5) * 0.8;
+        return jitterB - jitterA;
+      });
 
-          const newDelta = calculateDelta(testA, testB);
+      const listA: PlayerInternal[] = [];
+      const listB: PlayerInternal[] = [];
 
-          if (newDelta < bestDelta - 0.001) {
-            bestA = testA;
-            bestB = testB;
-            bestDelta = newDelta;
-            improved = true;
-            break;
-          }
+      let turnToB = Math.random() < 0.5;
+
+      for (let i = 0; i < shuffledDraft.length; i++) {
+        const player = shuffledDraft[i];
+        const canAddToA = listA.length < slotsA;
+        const canAddToB = listB.length < slotsB;
+
+        if (turnToB && canAddToB) {
+          listB.push(player);
+        } else if (!turnToB && canAddToA) {
+          listA.push(player);
+        } else if (canAddToA) {
+          listA.push(player);
+        } else if (canAddToB) {
+          listB.push(player);
         }
-        if (improved) break;
+
+        if ((i + 1) % 2 === 0) {
+          turnToB = !turnToB;
+        }
+      }
+
+      // 2. Otimizador de Trocas (Hill Climbing)
+      let bestA = [...listA];
+      let bestB = [...listB];
+      let bestDelta = calculateDelta(bestA, bestB);
+      let improved = true;
+
+      while (improved) {
+        improved = false;
+
+        const indicesA = Array.from({ length: bestA.length }, (_, i) => i).sort(() => Math.random() - 0.5);
+        const indicesB = Array.from({ length: bestB.length }, (_, i) => i).sort(() => Math.random() - 0.5);
+
+        for (const i of indicesA) {
+          for (const j of indicesB) {
+            const testA = [...bestA];
+            const testB = [...bestB];
+
+            testA[i] = bestB[j];
+            testB[j] = bestA[i];
+
+            const newDelta = calculateDelta(testA, testB);
+
+            if (newDelta < bestDelta - 0.001) {
+              bestA = testA;
+              bestB = testB;
+              bestDelta = newDelta;
+              improved = true;
+              break;
+            }
+          }
+          if (improved) break;
+        }
+      }
+
+      const finalScoreA = gkScoreA + bestA.reduce((acc, p) => acc + p.overallRating, 0);
+      const finalScoreB = gkScoreB + bestB.reduce((acc, p) => acc + p.overallRating, 0);
+
+      const sigA = bestA.map((p) => p.id).sort().join(',');
+      const sigB = bestB.map((p) => p.id).sort().join(',');
+      const signature = `${sigA}|${sigB}`;
+
+      if (!seenSignatures.has(signature)) {
+        seenSignatures.add(signature);
+        candidatePool.push({
+          teamAField: bestA,
+          teamBField: bestB,
+          scoreA: finalScoreA,
+          scoreB: finalScoreB,
+          delta: bestDelta,
+          signature,
+        });
       }
     }
 
-    const finalScoreA = gkScoreA + bestA.reduce((acc, p) => acc + p.overallRating, 0);
-    const finalScoreB = gkScoreB + bestB.reduce((acc, p) => acc + p.overallRating, 0);
+    let minDelta = Infinity;
+    for (const cand of candidatePool) {
+      if (cand.delta < minDelta) minDelta = cand.delta;
+    }
+
+    const tolerance = Math.min(minDelta + 0.8, 1.8);
+    const topCandidates = candidatePool.filter((c) => c.delta <= tolerance);
+
+    const chosen = topCandidates.length > 0
+      ? topCandidates[Math.floor(Math.random() * topCandidates.length)]
+      : candidatePool[0] || {
+          teamAField: players.slice(0, slotsA),
+          teamBField: players.slice(slotsA),
+          scoreA: gkScoreA,
+          scoreB: gkScoreB,
+          delta: 0,
+        };
 
     return {
-      teamAField: bestA,
-      teamBField: bestB,
-      scoreA: finalScoreA,
-      scoreB: finalScoreB,
+      teamAField: chosen.teamAField,
+      teamBField: chosen.teamBField,
+      scoreA: chosen.scoreA,
+      scoreB: chosen.scoreB,
     };
   }
 }

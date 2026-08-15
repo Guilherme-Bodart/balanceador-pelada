@@ -16,7 +16,7 @@ export class PlayerService {
     const ratings = player.ratings || [];
     const ratingCount = ratings.length;
     const physicalRating = Number(player.physicalRating ?? 5.0);
-    const baseSkillRating = Number(player.baseSkillRating ?? 5.0);
+    const baseSkillRating = Number(player.baseSkillRating ?? 0.0);
 
     let skillRating = baseSkillRating;
     if (ratingCount > 0) {
@@ -24,8 +24,10 @@ export class PlayerService {
       skillRating = Math.round((sum / ratingCount) * 10) / 10;
     }
 
-    // Nota Composta: 75% Peso Técnico (Skill) + 25% Peso Físico
-    const overallRating = Math.round(((skillRating * 0.75) + (physicalRating * 0.25)) * 10) / 10;
+    // Nota Composta: 75% Peso Técnico (Skill) + 25% Peso Físico (ou apenas Físico se ainda não avaliado)
+    const overallRating = skillRating > 0
+      ? Math.round(((skillRating * 0.75) + (physicalRating * 0.25)) * 10) / 10
+      : physicalRating;
 
     return {
       id: player.id,
@@ -139,7 +141,7 @@ export class PlayerService {
         photoUrl: photoUrl && photoUrl.trim().length > 0 ? photoUrl.trim() : null,
         position,
         physicalRating: Math.min(Math.max(Number(physicalRating), 1.0), 10.0),
-        baseSkillRating: 5.0,
+        baseSkillRating: 0.0,
       },
       include: {
         ratings: true,

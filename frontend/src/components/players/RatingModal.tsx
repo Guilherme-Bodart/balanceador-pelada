@@ -79,9 +79,14 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 <h4 className="font-bold text-white text-sm">{player.name}</h4>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-black border ${rankInfo.badgeBg} ${rankInfo.badgeText} ${rankInfo.badgeBorder}`}
+                    className="px-2 py-0.5 rounded-lg text-[10px] font-black tracking-wider uppercase shadow-sm"
+                    style={{
+                      backgroundColor: `${rankInfo.colorHex}25`,
+                      color: rankInfo.colorHex,
+                      border: `1px solid ${rankInfo.colorHex}55`,
+                    }}
                   >
-                    RANK {rankInfo.rank}
+                    RANK {player.ratingCount > 0 || player.skillRating > 0 ? rankInfo.rank : 'NOVO'}
                   </span>
                   <span className="text-[11px] text-slate-400">
                     {player.position === 'GOALKEEPER' ? '🧤 Goleiro' : '🏃 Linha'}

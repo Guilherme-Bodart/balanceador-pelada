@@ -3,15 +3,15 @@ import { Player, CreatePlayerInput, UpdatePlayerInput, ApiResponse } from '../ty
 
 export const playerService = {
   /**
-   * Busca a lista completa de jogadores cadastrados (dados públicos).
+   * Busca a lista completa de jogadores diretamente do banco de dados (API).
    */
   async getAll(): Promise<Player[]> {
     const response = await api.get<ApiResponse<Player[]>>('/players');
-    return response.data.data;
+    return response.data?.data || [];
   },
 
   /**
-   * Busca um jogador específico por ID.
+   * Busca detalhes de um jogador por ID diretamente do banco.
    */
   async getById(id: string): Promise<Player> {
     const response = await api.get<ApiResponse<Player>>(`/players/${id}`);
@@ -19,7 +19,7 @@ export const playerService = {
   },
 
   /**
-   * Cadastra um novo jogador.
+   * Cadastra novo jogador diretamente no banco de dados.
    */
   async create(data: CreatePlayerInput): Promise<Player> {
     const response = await api.post<ApiResponse<Player>>('/players', data);
@@ -27,7 +27,7 @@ export const playerService = {
   },
 
   /**
-   * Atualiza os dados de um jogador existente.
+   * Atualiza dados de um jogador existente no banco.
    */
   async update(id: string, data: UpdatePlayerInput): Promise<Player> {
     const response = await api.put<ApiResponse<Player>>(`/players/${id}`, data);
@@ -35,21 +35,21 @@ export const playerService = {
   },
 
   /**
-   * Remove um jogador.
+   * Remove um jogador permanentemente do banco de dados.
    */
   async delete(id: string): Promise<void> {
     await api.delete(`/players/${id}`);
   },
 
   /**
-   * Adiciona uma nova nota de Skill (1.0 a 10.0) para o jogador.
+   * Registra avaliação de habilidade técnica (Skill) no banco.
    */
   async addRating(id: string, value: number): Promise<void> {
     await api.post(`/players/${id}/ratings`, { value });
   },
 
   /**
-   * Dispara a Virada de Mês / Reset Mensal com consolidação de médias.
+   * Executa a Virada de Mês / Consolidação de médias no banco de dados.
    */
   async monthlyReset(): Promise<{ message: string; consolidatedCount: number }> {
     const response = await api.post<ApiResponse<{ message: string; consolidatedCount: number }>>('/players/monthly-reset');

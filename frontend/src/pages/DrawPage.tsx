@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Player, DrawResponse } from '../types';
-import { DrawConfig } from '../components/draw/DrawConfig';
-import { PlayerCard } from '../components/players/PlayerCard';
-import { TeamDisplay } from '../components/draw/TeamDisplay';
+import { PlayerShield } from '../components/players/PlayerShield';
+import { DrawResultPanel } from '../components/draw/DrawResultPanel';
+import { DrawLoadingOverlay } from '../components/draw/DrawLoadingOverlay';
 import { ShareModal } from '../components/draw/ShareModal';
-import { drawService } from '../services/drawService';
-import confetti from 'canvas-confetti';
-import { Search, UserCheck } from 'lucide-react';
+import { Button } from '../components/common/Button';
+import { getRankInfo } from '../constants/ranks';
+import { Search, Shuffle, CheckCircle2, AlertCircle, ArrowLeft, Check, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DrawPageProps {
   players: Player[];
@@ -14,6 +15,10 @@ interface DrawPageProps {
   onToggleSelect: (id: string) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
+  onDraw: (selectedIds: string[], gkIds?: string[]) => Promise<DrawResponse | null>;
+  drawResult: DrawResponse | null;
+  onResetDraw: () => void;
+  isLoading: boolean;
 }
 
 export const DrawPage: React.FC<DrawPageProps> = ({
@@ -22,153 +27,317 @@ export const DrawPage: React.FC<DrawPageProps> = ({
   onToggleSelect,
   onSelectAll,
   onDeselectAll,
+  onDraw,
+  drawResult,
+  onResetDraw,
+  isLoading,
 }) => {
-  const [playersPerTeam, setPlayersPerTeam] = useState<number>(5);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawResult, setDrawResult] = useState<DrawResponse | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
-  
-  // Controle dinâmico de quem é Goleiro nesta partida
+  const [filterView, setFilterView] = useState<'ALL' | 'SELECTED' | 'GK'>('ALL');
   const [customGkIds, setCustomGkIds] = useState<string[]>([]);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  // Sincroniza goleiros padrão quando a lista de jogadores carrega
-  useEffect(() => {
-    if (players.length > 0) {
-      setCustomGkIds((prev) => {
-        if (prev.length === 0) {
-          return players.filter((p) => p.position === 'GOALKEEPER').map((p) => p.id);
-        }
-        return prev;
-      });
-    }
-  }, [players]);
+  // Goleiros Selecionados
+  const selectedPlayers = players.filter((p) => selectedPlayerIds.includes(p.id));
+  const selectedGkCount = selectedPlayers.filter(
+    (p) => customGkIds.includes(p.id) || (!customGkIds.includes(p.id) && p.position === 'GOALKEEPER')
+  ).length;
 
-  // Alterna o status de goleiro para um jogador nesta partida
-  const handleToggleGoalkeeper = (playerId: string) => {
+  const filteredPlayers = players.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchFilter.toLowerCase());
+    const isSelected = selectedPlayerIds.includes(p.id);
+    const isGk = customGkIds.includes(p.id) || (!customGkIds.includes(p.id) && p.position === 'GOALKEEPER');
+
+    if (filterView === 'SELECTED') return matchesSearch && isSelected;
+    if (filterView === 'GK') return matchesSearch && isGk;
+    return matchesSearch;
+  });
+
+  const handleToggleGoalkeeper = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setCustomGkIds((prev) =>
-      prev.includes(playerId)
-        ? prev.filter((id) => id !== playerId)
-        : [...prev, playerId]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
-  // Contagem de goleiros entre os selecionados para hoje
-  const selectedGoalkeepersCount = selectedPlayerIds.filter((id) =>
-    customGkIds.includes(id)
-  ).length;
-
-  const filteredPlayers = players.filter((p) =>
-    p.name.toLowerCase().includes(searchFilter.toLowerCase())
-  );
-
-  const isAllSelected = players.length > 0 && selectedPlayerIds.length === players.length;
-
   const handleExecuteDraw = async () => {
-    try {
-      setIsDrawing(true);
-      const activeGkIds = customGkIds.filter((id) => selectedPlayerIds.includes(id));
-      
-      const result = await drawService.drawTeams({
-        playerIds: selectedPlayerIds,
-        playersPerTeam,
-        goalkeeperIds: activeGkIds,
-      });
-
-      setDrawResult(result);
-
-      // Dispara confetes comemorativos
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#10B981', '#84CC16', '#F59E0B', '#38BDF8'],
-      });
-    } catch (error: any) {
-      alert(error.message || 'Erro ao realizar o sorteio.');
-    } finally {
-      setIsDrawing(false);
+    if (selectedPlayerIds.length < 2) {
+      alert('Selecione ao menos 2 atletas para realizar o sorteio.');
+      return;
     }
+    await onDraw(selectedPlayerIds, customGkIds);
   };
 
   return (
-    <div className="space-y-4 max-w-lg sm:max-w-xl mx-auto px-3 sm:px-4 pb-2">
-      {/* Se já houve sorteio, exibe os resultados em 2 colunas com o X */}
-      {drawResult ? (
-        <div className="space-y-4">
-          <TeamDisplay
-            result={drawResult}
-            onOpenShare={() => setIsShareModalOpen(true)}
-            onRedraw={handleExecuteDraw}
-          />
-        </div>
-      ) : (
-        /* Se ainda não sorteou, exibe a interface de configuração e seleção em 2 colunas */
-        <div className="space-y-4">
-          {/* Painel de Configuração do Sorteio */}
-          <DrawConfig
-            playersPerTeam={playersPerTeam}
-            onPlayersPerTeamChange={setPlayersPerTeam}
-            totalSelected={selectedPlayerIds.length}
-            totalGoalkeepers={selectedGoalkeepersCount}
-            onDraw={handleExecuteDraw}
-            isLoading={isDrawing}
-            onSelectAll={onSelectAll}
-            onDeselectAll={onDeselectAll}
-            isAllSelected={isAllSelected}
-          />
-
-          {/* Cabeçalho da Lista de Presença */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
-              <h3 className="font-extrabold text-white text-sm tracking-tight">
-                Quem vai jogar hoje?
-              </h3>
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 pb-28">
+      <AnimatePresence mode="wait">
+        {drawResult ? (
+          /* ================= TELA DE RESULTADO DOS TIMES (TIME VERMELHO VS TIME AZUL) ================= */
+          <motion.div
+            key="draw-result"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div className="mb-3 flex items-center justify-start">
+              <button
+                type="button"
+                onClick={onResetDraw}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700/80 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Editar Convocação</span>
+              </button>
             </div>
-            <span className="text-xs text-slate-400 font-mono">
-              {selectedPlayerIds.length} de {players.length} marcados
-            </span>
-          </div>
 
-          {/* Busca rápida na lista de seleção */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-2.5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Buscar Pokémon / atleta..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            <DrawResultPanel
+              drawResult={drawResult}
+              onDrawAgain={handleExecuteDraw}
+              onShare={() => setIsShareModalOpen(true)}
+              isLoading={isLoading}
             />
-          </div>
 
-          {/* Lista de Seleção em 2 COLUNAS LADO A LADO */}
-          <div className="grid grid-cols-2 gap-2">
-            {filteredPlayers.map((player) => {
-              const isSelected = selectedPlayerIds.includes(player.id);
-              const isGk = customGkIds.includes(player.id);
-              return (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  selectable={true}
-                  isSelected={isSelected}
-                  onToggleSelect={onToggleSelect}
-                  isCustomGoalkeeper={isGk}
-                  onToggleGoalkeeper={handleToggleGoalkeeper}
+            <ShareModal
+              isOpen={isShareModalOpen}
+              onClose={() => setIsShareModalOpen(false)}
+              drawData={drawResult}
+            />
+          </motion.div>
+        ) : (
+          /* ================= TELA DE CONVOCAÇÃO COM ESCUDOS FIFA (PRÉ-SORTEIO) ================= */
+          <motion.div
+            key="draw-selection"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-4"
+          >
+            {/* Header Compacto de Convocação (Otimizado para Mobile) */}
+            <div className="glass-panel rounded-2xl p-2.5 sm:p-3 border border-slate-800 flex items-center justify-between gap-2 shadow-lg">
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{selectedPlayerIds.length} Convocados</span>
+                </div>
+                <span className="text-[11px] text-slate-400">
+                  (<strong className="text-amber-400">{selectedGkCount}</strong> gol)
+                </span>
+              </div>
+
+              {/* Ações Rápidas de Seleção */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={onSelectAll}
+                  className="px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-[11px] font-bold text-slate-200 border border-slate-700 transition-colors"
+                >
+                  Todos ({players.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={onDeselectAll}
+                  className="px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-[11px] font-bold text-slate-400 hover:text-slate-200 border border-slate-700 transition-colors"
+                >
+                  Limpar
+                </button>
+              </div>
+            </div>
+
+            {/* Alerta se houver menos de 2 goleiros */}
+            {selectedPlayerIds.length >= 6 && selectedGkCount < 2 && (
+              <div className="flex items-center gap-2 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                <span>
+                  Dica: Para uma pelada equilibrada com 2 times, defina ao menos 2 goleiros clicando no botão 🧤 abaixo do escudo.
+                </span>
+              </div>
+            )}
+
+            {/* Barra de Busca e Filtros Rápidos */}
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
+              <div className="relative flex-1 w-full">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar atleta no elenco..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                 />
-              );
-            })}
-          </div>
-        </div>
-      )}
+              </div>
 
-      {/* Modal de Compartilhamento no WhatsApp */}
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        result={drawResult}
+              {/* Filtros de Visualização */}
+              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setFilterView('ALL')}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    filterView === 'ALL'
+                      ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  Todos ({players.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterView('SELECTED')}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    filterView === 'SELECTED'
+                      ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  ✓ Convocados ({selectedPlayerIds.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterView('GK')}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    filterView === 'GK'
+                      ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  🧤 Goleiros
+                </button>
+              </div>
+            </div>
+
+            {/* Grid de Escudos FIFA Compactos e Interativos (Pré-Sorteio) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 pt-1">
+              {filteredPlayers.map((player) => {
+                const isSelected = selectedPlayerIds.includes(player.id);
+                const isGk =
+                  customGkIds.includes(player.id) ||
+                  (!customGkIds.includes(player.id) && player.position === 'GOALKEEPER');
+                const rInfo = getRankInfo(player.overallRating);
+
+                return (
+                  <div
+                    key={player.id}
+                    onClick={() => onToggleSelect(player.id)}
+                    className={`group relative flex flex-col items-center p-2 sm:p-2.5 rounded-3xl transition-all duration-200 cursor-pointer border ${
+                      isSelected
+                        ? 'bg-slate-900/90 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.25)] scale-[1.01]'
+                        : 'bg-slate-950/60 border-slate-800/80 opacity-50 hover:opacity-85 hover:border-slate-700'
+                    }`}
+                  >
+                    {/* Badge de Seleção / Check no topo direito */}
+                    <div className="absolute top-3 right-3 z-30">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                            : 'bg-slate-800/80 text-slate-500 border border-slate-700'
+                        }`}
+                      >
+                        {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : null}
+                      </div>
+                    </div>
+
+                    {/* Escudo FIFA Compacto */}
+                    <div className="w-full flex justify-center py-1">
+                      <PlayerShield
+                        name={player.name}
+                        position={isGk ? 'GOLEIRO' : 'LINHA'}
+                        rating={player.overallRating}
+                        grade={rInfo.rank}
+                        photoUrl={player.photoUrl || undefined}
+                        accent={isSelected ? rInfo.colorHex : '#64748b'}
+                        accentAlt={isSelected ? rInfo.borderHex : '#334155'}
+                        borderWidth={5}
+                        glow={isSelected}
+                        effect={isSelected ? 'glow' : 'none'}
+                        shine={isSelected}
+                        badge={isGk ? 'GOLEIRO' : isSelected ? 'CONVOCADO' : undefined}
+                        stats={[
+                          {
+                            label: 'SKL',
+                            value: player.ratingCount > 0 || player.skillRating > 0 ? String(Math.round(player.skillRating * 10)) : '—',
+                          },
+                          { label: 'FIS', value: String(Math.round(player.physicalRating * 10)) },
+                        ]}
+                        className="w-full max-w-[170px] sm:max-w-[190px] h-auto"
+                      />
+                    </div>
+
+                    {/* Botões de Ação Divididos no Meio (50% / 50%): Goleiro/Linha + Joga/Fora */}
+                    <div className="w-full mt-2 pt-1.5 border-t border-white/5 grid grid-cols-2 gap-1.5 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleGoalkeeper(player.id, e)}
+                        className={`w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl font-bold transition-all border text-center ${
+                          isGk
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-sm'
+                            : 'bg-slate-800/50 border-slate-700/60 text-slate-400 hover:text-slate-200'
+                        }`}
+                        title="Alternar entre Goleiro e Linha"
+                      >
+                        {isGk ? (
+                          <>
+                            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Goleiro</span>
+                          </>
+                        ) : (
+                          <span>🏃 Linha</span>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleSelect(player.id);
+                        }}
+                        className={`w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl font-black text-[11px] transition-all border text-center ${
+                          isSelected
+                            ? 'bg-emerald-500/25 border-emerald-500/50 text-emerald-300 shadow-sm'
+                            : 'bg-slate-800/40 border-slate-700/50 text-slate-500 hover:text-slate-300'
+                        }`}
+                        title={isSelected ? 'Clique para retirar da convocação' : 'Clique para convocar'}
+                      >
+                        {isSelected ? '✓ JOGA' : 'FORA'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ================= BOTÃO FLUTUANTE PROEMINENTE "SORTEAR TIMES" ================= */}
+            <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pointer-events-none flex justify-center">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="pointer-events-auto"
+              >
+                <Button
+                  type="button"
+                  variant="glow"
+                  size="lg"
+                  onClick={handleExecuteDraw}
+                  disabled={selectedPlayerIds.length < 2 || isLoading}
+                  isLoading={isLoading}
+                  leftIcon={<Shuffle className="w-5 h-5" />}
+                  className="rounded-full !px-8 !py-3.5 text-sm font-black shadow-[0_10px_25px_rgba(16,185,129,0.4)] uppercase tracking-wider"
+                >
+                  {selectedPlayerIds.length >= 2
+                    ? `Sortear os ${selectedPlayerIds.length} Atletas Convocados`
+                    : 'Selecione ao menos 2 atletas'}
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ================= OVERLAY CINEMATOGRÁFICO DE LOADING DO SORTEIO ================= */}
+      <DrawLoadingOverlay
+        isOpen={isLoading}
+        players={selectedPlayers.length > 0 ? selectedPlayers : players}
       />
     </div>
   );

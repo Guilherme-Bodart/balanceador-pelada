@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { RefreshCw, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
+import { RefreshCw, CheckCircle2, AlertTriangle, Sparkles, Lock, KeyRound } from 'lucide-react';
 
 interface MonthlyResetModalProps {
   isOpen: boolean;
@@ -16,10 +16,28 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
   onConfirmReset,
   totalPlayers,
 }) => {
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successResult, setSuccessResult] = useState<string | null>(null);
 
-  const handleConfirm = async () => {
+  useEffect(() => {
+    if (isOpen) {
+      setPassword('');
+      setErrorMsg(null);
+      setSuccessResult(null);
+    }
+  }, [isOpen]);
+
+  const handleConfirm = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setErrorMsg(null);
+
+    if (password.trim() !== '7337') {
+      setErrorMsg('Senha incorreta! Digite a senha master autorizada.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await onConfirmReset();
@@ -29,7 +47,7 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
         onClose();
       }, 1500);
     } catch (error: any) {
-      alert(error.message || 'Erro ao realizar virada de mês.');
+      setErrorMsg(error.message || 'Erro ao realizar virada de mês.');
     } finally {
       setIsSubmitting(false);
     }
@@ -52,7 +70,7 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
           <p className="text-xs text-slate-300">{successResult}</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <form onSubmit={handleConfirm} className="space-y-4">
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2 text-xs text-slate-200">
             <div className="flex items-center gap-2 font-bold text-amber-400 text-sm">
               <AlertTriangle className="w-4 h-4" />
@@ -71,6 +89,34 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
             </ul>
           </div>
 
+          {/* Campo de Senha de Segurança */}
+          <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <label className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-purple-400" />
+              <span>Senha de Confirmação Master</span>
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
+                placeholder="Digite a senha master de autorização..."
+                autoFocus
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono tracking-widest"
+              />
+              <KeyRound className="w-4 h-4 text-slate-500 absolute right-3.5 top-3 pointer-events-none" />
+            </div>
+            {errorMsg && (
+              <p className="text-xs text-rose-400 font-medium flex items-center gap-1 pt-1">
+                <span>⚠️</span>
+                <span>{errorMsg}</span>
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
@@ -82,18 +128,18 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
               Cancelar
             </Button>
             <Button
-              type="button"
+              type="submit"
               variant="glow"
               className="flex-1"
               isLoading={isSubmitting}
-              onClick={handleConfirm}
+              disabled={!password}
               leftIcon={<RefreshCw className="w-4 h-4" />}
               rightIcon={<Sparkles className="w-3.5 h-3.5" />}
             >
               Confirmar Virada
             </Button>
           </div>
-        </div>
+        </form>
       )}
     </Modal>
   );

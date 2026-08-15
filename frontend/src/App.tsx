@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Player, CreatePlayerInput, UpdatePlayerInput } from './types';
+import { Player, CreatePlayerInput, UpdatePlayerInput, DrawResponse } from './types';
 import { playerService } from './services/playerService';
+import { drawService } from './services/drawService';
 import { Header } from './components/common/Header';
 import { BottomNav, TabType } from './components/common/BottomNav';
+import { StadiumBackground } from './components/ui/StadiumBackground';
 import { PlayersPage } from './pages/PlayersPage';
 import { DrawPage } from './pages/DrawPage';
 import { RulesPage } from './pages/RulesPage';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('draw');
+  const [activeTab, setActiveTab] = useState<TabType>('players');
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [drawResult, setDrawResult] = useState<DrawResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Carregar jogadores do backend
+  // Carregar jogadores
   const loadPlayers = async () => {
     try {
       setIsLoading(true);
@@ -22,18 +26,15 @@ export const App: React.FC = () => {
       const data = await playerService.getAll();
       setPlayers(data);
 
-      // Por padrão, seleciona os primeiros 10 jogadores se nada estiver selecionado ainda
+      // Por padrão, convoca os primeiros 10 atletas
       setSelectedPlayerIds((prev) => {
         if (prev.length === 0 && data.length > 0) {
           return data.slice(0, 10).map((p) => p.id);
         }
-        // Filtra IDs que continuam existindo
         return prev.filter((id) => data.some((p) => p.id === id));
       });
     } catch (err: any) {
-      setErrorMessage(
-        err.message || 'Não foi possível conectar com o backend.'
-      );
+      setErrorMessage(err.message || 'Erro ao carregar atletas.');
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +70,7 @@ export const App: React.FC = () => {
     await loadPlayers();
   };
 
-  // Toggle de seleção de atletas para o sorteio
+  // Toggle de seleção de presença
   const handleToggleSelect = (id: string) => {
     setSelectedPlayerIds((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
@@ -84,36 +85,66 @@ export const App: React.FC = () => {
     setSelectedPlayerIds([]);
   };
 
+  // Executar Sorteio
+  const handleDraw = async (selectedIds: string[], gkIds: string[] = []): Promise<DrawResponse | null> => {
+    try {
+      setIsDrawing(true);
+      // Executa o sorteio em paralelo com a animação cinematográfica de 2.2s
+      const [res] = await Promise.all([
+        drawService.drawTeams({
+          playerIds: selectedIds,
+          playersPerTeam: Math.ceil(selectedIds.length / 2),
+          goalkeeperIds: gkIds,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 2200)),
+      ]);
+      setDrawResult(res);
+      return res;
+    } catch (err: any) {
+      alert(err.message || 'Erro ao realizar o sorteio.');
+      return null;
+    } finally {
+      setIsDrawing(false);
+    }
+  };
+
+  const handleResetDraw = () => {
+    setDrawResult(null);
+  };
+
   return (
-    <div className="min-h-screen bg-pitch-dark text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
-      {/* Header Fixo */}
+    <StadiumBackground>
+      {/* Header Esportivo */}
       <Header />
 
-      {/* Alerta de Erro de Conexão se Backend estiver offline */}
+      {/* Alerta Opcional */}
       {errorMessage && (
-        <div className="max-w-lg sm:max-w-xl mx-auto w-full px-4 pt-3">
+        <div className="max-w-4xl mx-auto w-full px-4 pt-3">
           <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs text-rose-300 flex items-center justify-between">
             <span>⚠️ {errorMessage}</span>
             <button
               onClick={loadPlayers}
               className="underline font-bold hover:text-white ml-2 shrink-0"
             >
-              Tentar Novamente
+              Recarregar
             </button>
           </div>
         </div>
       )}
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 pt-3 pb-20">
+      <main className="flex-1 pt-4">
         {activeTab === 'players' && (
           <PlayersPage
             players={players}
+            selectedPlayerIds={selectedPlayerIds}
+            onToggleSelect={handleToggleSelect}
             onRefresh={loadPlayers}
             onSavePlayer={handleSavePlayer}
             onDeletePlayer={handleDeletePlayer}
             onRatePlayer={handleRatePlayer}
             onMonthlyReset={handleMonthlyReset}
+            onGoToDraw={() => setActiveTab('draw')}
             isLoading={isLoading}
           />
         )}
@@ -125,18 +156,22 @@ export const App: React.FC = () => {
             onToggleSelect={handleToggleSelect}
             onSelectAll={handleSelectAll}
             onDeselectAll={handleDeselectAll}
+            onDraw={handleDraw}
+            drawResult={drawResult}
+            onResetDraw={handleResetDraw}
+            isLoading={isDrawing}
           />
         )}
 
         {activeTab === 'rules' && <RulesPage />}
       </main>
 
-      {/* Navegação Inferior Mobile-First */}
+      {/* Floating Dock Navbar */}
       <BottomNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
         selectedCount={selectedPlayerIds.length}
       />
-    </div>
+    </StadiumBackground>
   );
 };

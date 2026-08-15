@@ -1,7 +1,8 @@
 import React from 'react';
-import { DrawResponse } from '../../types';
+import { DrawResponse, Player } from '../../types';
 import { Badge } from '../common/Badge';
 import { PlayerShield } from '../players/PlayerShield';
+import { getRankInfo } from '../../constants/ranks';
 import { ShieldAlert, Share2, CheckCircle2, AlertTriangle, RefreshCw, Scale } from 'lucide-react';
 import { Button } from '../common/Button';
 
@@ -18,6 +19,31 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
 }) => {
   const { teamA, teamB, differenceScore, advantageTeam, isEquilibrado } = result;
 
+  const renderShield = (player: Player, isGk: boolean = false) => {
+    const rankInfo = getRankInfo(player.overallRating);
+    return (
+      <PlayerShield
+        key={player.id}
+        name={player.name}
+        position={isGk ? 'GOLEIRO' : 'LINHA'}
+        rating={player.overallRating}
+        grade={rankInfo.rank}
+        photoUrl={player.photoUrl || undefined}
+        accent={rankInfo.colorHex}
+        accentAlt={rankInfo.borderHex}
+        badge={isGk ? 'GOLEIRO' : undefined}
+        stats={[
+          {
+            label: 'SKL',
+            value: player.ratingCount > 0 || player.skillRating > 0 ? String(Math.round(player.skillRating * 10)) : '—',
+          },
+          { label: 'FIS', value: String(Math.round(player.physicalRating * 10)) },
+        ]}
+        className="w-full max-w-[200px] mx-auto h-auto"
+      />
+    );
+  };
+
   return (
     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
       {/* Banner Superior de Equilíbrio e Diferença de Força */}
@@ -28,52 +54,39 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
             : 'bg-amber-950/50 border-amber-500/40 text-amber-300'
         }`}
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2">
           {isEquilibrado ? (
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            </div>
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           ) : (
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-            </div>
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
           )}
-
-          <div className="min-w-0">
-            <h4 className="text-xs font-black uppercase tracking-wider text-white truncate">
-              {isEquilibrado ? 'Times Equilibrados' : 'Equilíbrio Ajustado'}
-            </h4>
-            <p className="text-[11px] text-slate-300 truncate">
-              {advantageTeam || `Diferença estimada: ${differenceScore.toFixed(1)} pts`}
-            </p>
+          <div className="text-xs">
+            <span className="font-black tracking-wide block">
+              {isEquilibrado ? 'TIMES EQUILIBRADOS' : 'LEVE VANTAGEM'}
+            </span>
+            <span className="text-[11px] opacity-80">
+              Diferença técnica: <strong>{differenceScore.toFixed(1)} pts</strong>
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge variant={isEquilibrado ? 'emerald' : 'amber'} size="sm">
-            <Scale className="w-3 h-3 mr-1 inline" />
-            Δ {differenceScore.toFixed(1)} pts
+        {advantageTeam && (
+          <Badge variant="emerald" size="sm">
+            <Scale className="w-3 h-3 mr-1" />
+            {advantageTeam}
           </Badge>
-        </div>
+        )}
       </div>
 
-      {/* Duelo de Times com Escudos Gamificados */}
-      <div className="relative glass-panel rounded-3xl p-3 sm:p-4 border border-slate-800 shadow-card-elevated">
-        {/* Emblema "X" Centralizado no topo dos times */}
-        <div className="absolute left-1/2 top-4 -translate-x-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-950 border-2 border-emerald-500/80 shadow-glow-emerald flex items-center justify-center">
-          <span className="font-black text-xs sm:text-sm text-emerald-400 font-display">
-            X
-          </span>
-        </div>
-
-        {/* Grid Lado a Lado (2 Colunas com Escudos) */}
+      {/* Painel Principal de Comparação dos 2 Times Lado a Lado */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl">
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* ================= TIME 1 (ESQUERDA) ================= */}
           <div className="space-y-3">
             {/* Header Time 1 */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-emerald-950/90 to-slate-900 border border-emerald-500/40 text-left min-h-[58px] flex flex-col justify-between">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-rose-950/90 to-slate-900 border border-rose-500/40 text-left min-h-[58px] flex flex-col justify-between">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs">🟢</span>
+                <span className="text-xs">🔴</span>
                 <h3 className="font-black text-white text-xs sm:text-sm tracking-tight truncate">
                   Time 1
                 </h3>
@@ -90,7 +103,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
                   <ShieldAlert className="w-2.5 h-2.5" />
                   Goleiro
                 </span>
-                <PlayerShield player={teamA.goalkeeper} isGoalkeeper={true} />
+                {renderShield(teamA.goalkeeper, true)}
               </div>
             )}
 
@@ -100,13 +113,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
                 Linha ({teamA.fieldPlayers.length})
               </span>
               <div className="grid grid-cols-1 gap-2">
-                {teamA.fieldPlayers.map((player, idx) => (
-                  <PlayerShield
-                    key={player.id}
-                    player={player}
-                    numberLabel={idx + 1}
-                  />
-                ))}
+                {teamA.fieldPlayers.map((player) => renderShield(player, false))}
               </div>
             </div>
           </div>
@@ -133,7 +140,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
                   <ShieldAlert className="w-2.5 h-2.5" />
                   Goleiro
                 </span>
-                <PlayerShield player={teamB.goalkeeper} isGoalkeeper={true} />
+                {renderShield(teamB.goalkeeper, true)}
               </div>
             )}
 
@@ -143,13 +150,7 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
                 Linha ({teamB.fieldPlayers.length})
               </span>
               <div className="grid grid-cols-1 gap-2">
-                {teamB.fieldPlayers.map((player, idx) => (
-                  <PlayerShield
-                    key={player.id}
-                    player={player}
-                    numberLabel={idx + 1}
-                  />
-                ))}
+                {teamB.fieldPlayers.map((player) => renderShield(player, false))}
               </div>
             </div>
           </div>
@@ -159,22 +160,22 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
       {/* Botões de Ação do Sorteio */}
       <div className="flex gap-2.5 pt-1">
         <Button
-          type="button"
-          variant="secondary"
-          className="flex-1 text-xs sm:text-sm"
+          variant="ghost"
+          size="md"
           onClick={onRedraw}
-          leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+          className="flex-1 rounded-2xl border border-slate-700 hover:bg-slate-800"
+          leftIcon={<RefreshCw className="w-4 h-4" />}
         >
           Sortear Novamente
         </Button>
         <Button
-          type="button"
-          variant="glow"
-          className="flex-1 text-xs sm:text-sm"
+          variant="primary"
+          size="md"
           onClick={onOpenShare}
-          leftIcon={<Share2 className="w-3.5 h-3.5" />}
+          className="flex-1 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold"
+          leftIcon={<Share2 className="w-4 h-4" />}
         >
-          WhatsApp
+          Compartilhar
         </Button>
       </div>
     </div>

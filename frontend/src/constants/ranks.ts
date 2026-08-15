@@ -1,166 +1,274 @@
 export type PlayerRank = 'D' | 'C' | 'B' | 'A' | 'A+' | 'S' | 'SS' | 'UR';
 
-export interface RankDetails {
+export interface RankToken {
   rank: PlayerRank;
-  label: string; // Ex: "Fora da curva", "Excepcional", "Excelente", etc.
-  description: string;
+  label: string;
+  subtitle: string;
+  range: string;
+  // Cores Base
+  colorHex: string;
+  borderHex: string;
+  bgHex: string;
+  
+  // Classes da Tabela de Regras
+  rulesCardBg: string;
+  rulesCardBorder: string;
+  rulesLeftBar: string;
+  rulesBadgeBg: string;
+  rulesBadgeText: string;
+  rulesBadgeBorder: string;
+  rulesTitleText: string;
+  rulesScoreBadge: string;
+
+  // Classes do Card Esportivo FIFA
+  cardBgStyle: string;
+  cardBorder: string;
+  cardShadow: string;
+  ratingTextColor: string;
   badgeBg: string;
   badgeText: string;
   badgeBorder: string;
-  cardBorder: string;
-  cardBg: string;
-  cardGlow: string;
-  cardClass: string;
-  shieldBorderColor: string;
-  shieldBadgeBg: string;
-  shieldGlowClass: string;
-  accentColor: string;
+  badgeGlow: string;
+
+  isLegend?: boolean;
 }
 
-export const RANKS_MAP: Record<PlayerRank, RankDetails> = {
-  D: {
-    rank: 'D',
-    label: 'Muito fraco',
-    description: 'Nível iniciante',
-    badgeBg: 'bg-zinc-800/80',
-    badgeText: 'text-zinc-400',
-    badgeBorder: 'border-zinc-700',
-    cardBorder: 'border-zinc-700/60',
-    cardBg: 'bg-zinc-950/40',
-    cardGlow: '',
-    cardClass: '',
-    shieldBorderColor: '#71717a',
-    shieldBadgeBg: 'bg-zinc-800 text-zinc-300 border-zinc-600',
-    shieldGlowClass: '',
-    accentColor: '#71717a',
-  },
-  C: {
-    rank: 'C',
-    label: 'Fraco',
-    description: 'Precisa de ritmo',
-    badgeBg: 'bg-amber-950/70',
-    badgeText: 'text-amber-500',
-    badgeBorder: 'border-amber-700/60',
-    cardBorder: 'border-amber-700/50',
-    cardBg: 'bg-amber-950/20',
-    cardGlow: '',
-    cardClass: '',
-    shieldBorderColor: '#b45309',
-    shieldBadgeBg: 'bg-amber-950 text-amber-400 border-amber-600',
-    shieldGlowClass: '',
-    accentColor: '#d97706',
-  },
-  B: {
-    rank: 'B',
-    label: 'Mediano',
-    description: 'Jogador padrão de pelada',
-    badgeBg: 'bg-slate-800/80',
-    badgeText: 'text-slate-200',
-    badgeBorder: 'border-slate-600',
-    cardBorder: 'border-slate-600/60',
-    cardBg: 'bg-slate-900/50',
-    cardGlow: '',
-    cardClass: '',
-    shieldBorderColor: '#94a3b8',
-    shieldBadgeBg: 'bg-slate-800 text-slate-200 border-slate-500',
-    shieldGlowClass: '',
-    accentColor: '#94a3b8',
-  },
-  A: {
-    rank: 'A',
-    label: 'Bom',
-    description: 'Acima da média',
-    badgeBg: 'bg-emerald-950/70',
-    badgeText: 'text-emerald-400',
-    badgeBorder: 'border-emerald-500/60',
-    cardBorder: 'border-emerald-500/60',
-    cardBg: 'bg-emerald-950/20',
-    cardGlow: 'shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)]',
-    cardClass: '',
-    shieldBorderColor: '#10b981',
-    shieldBadgeBg: 'bg-emerald-950 text-emerald-300 border-emerald-500',
-    shieldGlowClass: 'shadow-[0_0_12px_rgba(16,185,129,0.35)]',
-    accentColor: '#10b981',
-  },
-  'A+': {
-    rank: 'A+',
-    label: 'Muito bom',
-    description: 'Destaque no jogo',
-    badgeBg: 'bg-purple-950/70',
-    badgeText: 'text-purple-300',
-    badgeBorder: 'border-purple-500/70',
-    cardBorder: 'border-purple-500/60',
-    cardBg: 'bg-purple-950/25',
-    cardGlow: 'shadow-[0_0_18px_-3px_rgba(168,85,247,0.35)]',
-    cardClass: '',
-    shieldBorderColor: '#a855f7',
-    shieldBadgeBg: 'bg-purple-950 text-purple-200 border-purple-400',
-    shieldGlowClass: 'shadow-[0_0_15px_rgba(168,85,247,0.4)]',
-    accentColor: '#a855f7',
-  },
-  S: {
-    rank: 'S',
-    label: 'Excelente',
-    description: 'Craque do time',
-    badgeBg: 'bg-rose-950/70',
-    badgeText: 'text-rose-300',
-    badgeBorder: 'border-rose-500/80',
-    cardBorder: 'border-rose-500/70',
-    cardBg: 'bg-rose-950/30',
-    cardGlow: 'shadow-[0_0_22px_-2px_rgba(239,68,68,0.4)]',
-    cardClass: '',
-    shieldBorderColor: '#ef4444',
-    shieldBadgeBg: 'bg-rose-950 text-rose-200 border-rose-500',
-    shieldGlowClass: 'shadow-[0_0_18px_rgba(239,68,68,0.5)]',
-    accentColor: '#ef4444',
-  },
-  SS: {
-    rank: 'SS',
-    label: 'Excepcional',
-    description: 'Decide a partida sozinho',
-    badgeBg: 'bg-gradient-to-r from-amber-600/30 via-yellow-500/40 to-amber-600/30',
-    badgeText: 'text-yellow-300 font-black',
-    badgeBorder: 'border-yellow-400/90',
-    cardBorder: 'border-amber-400/80',
-    cardBg: 'bg-gradient-to-b from-amber-950/35 to-slate-900/80',
-    cardGlow: 'shadow-glow-rank-ss',
-    cardClass: 'rank-card-ss animate-gold-shimmer',
-    shieldBorderColor: '#fbbf24',
-    shieldBadgeBg: 'bg-gradient-to-r from-amber-900 via-yellow-700 to-amber-900 text-yellow-200 border-yellow-400',
-    shieldGlowClass: 'shadow-shield-ss animate-pulse',
-    accentColor: '#fbbf24',
-  },
+export const RANKS_MAP: Record<PlayerRank, RankToken> = {
+  // ================= UR: ULTRA INSTINCT / BRANCO & ROXO CÓSMICO (10.0) =================
   UR: {
     rank: 'UR',
     label: 'Fora da curva',
-    description: 'Nível Ultra Instinct / Lendário',
-    badgeBg: 'bg-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30',
+    subtitle: 'NÍVEL ULTRA INSTINCT / LENDÁRIO',
+    range: '10.0',
+    colorHex: '#ffffff',
+    borderHex: '#c084fc',
+    bgHex: 'rgba(192, 132, 252, 0.15)',
+
+    rulesCardBg: 'bg-gradient-to-r from-purple-950/60 via-slate-900/90 to-fuchsia-950/40',
+    rulesCardBorder: 'border-purple-300/50 shadow-[0_0_15px_rgba(192,132,252,0.25)]',
+    rulesLeftBar: 'bg-gradient-to-b from-white via-purple-300 to-fuchsia-500 shadow-[0_0_12px_#ffffff]',
+    rulesBadgeBg: 'bg-gradient-to-r from-white via-purple-100 to-fuchsia-200',
+    rulesBadgeText: 'text-purple-950 font-black',
+    rulesBadgeBorder: 'border border-white',
+    rulesTitleText: 'text-purple-200 font-bold',
+    rulesScoreBadge: 'bg-purple-950/80 border border-purple-400/50 text-white font-black',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(168, 85, 247, 0.22) 50%, rgba(15, 23, 42, 0.98) 100%)',
+    cardBorder: 'border border-purple-300/70',
+    cardShadow: 'shadow-[0_0_20px_rgba(255,255,255,0.35),0_0_35px_rgba(168,85,247,0.45),0_8px_16px_rgba(0,0,0,0.5)]',
+    ratingTextColor: 'text-white drop-shadow-[0_0_8px_rgba(192,132,252,0.8)]',
+    badgeBg: 'bg-gradient-to-r from-white via-purple-100 to-purple-300',
+    badgeText: 'text-purple-950 font-black',
+    badgeBorder: 'border border-white',
+    badgeGlow: 'shadow-[0_0_15px_rgba(255,255,255,0.8),0_0_25px_rgba(168,85,247,0.6)]',
+    isLegend: true,
+  },
+
+  // ================= SS: DOURADO / EXCEPCIONAL (9.1 - 9.9) =================
+  SS: {
+    rank: 'SS',
+    label: 'Excepcional',
+    subtitle: 'Decide a partida sozinho',
+    range: '9.1 a 9.9',
+    colorHex: '#fbbf24',
+    borderHex: '#f59e0b',
+    bgHex: 'rgba(251, 191, 36, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-yellow-500/10 to-transparent',
+    rulesCardBorder: 'border-yellow-500/40',
+    rulesLeftBar: 'bg-yellow-400 shadow-[0_0_10px_#fbbf24]',
+    rulesBadgeBg: 'bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-700',
+    rulesBadgeText: 'text-slate-950 font-black',
+    rulesBadgeBorder: 'border border-yellow-200',
+    rulesTitleText: 'text-yellow-400 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-yellow-500/30 text-yellow-400 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(251, 191, 36, 0.14) 0%, rgba(217, 119, 6, 0.08) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-yellow-500/40',
+    cardShadow: 'shadow-[0_0_16px_rgba(251,191,36,0.25),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-yellow-400',
+    badgeBg: 'bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-600',
+    badgeText: 'text-slate-950 font-black',
+    badgeBorder: 'border border-yellow-200',
+    badgeGlow: 'shadow-[0_0_10px_rgba(251,191,36,0.6)]',
+  },
+
+  // ================= S: ROXO / EXCELENTE (8.1 - 9.0) =================
+  S: {
+    rank: 'S',
+    label: 'Excelente',
+    subtitle: 'Craque do time',
+    range: '8.1 a 9.0',
+    colorHex: '#a855f7',
+    borderHex: '#9333ea',
+    bgHex: 'rgba(168, 85, 247, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-purple-500/10 to-transparent',
+    rulesCardBorder: 'border-purple-500/30',
+    rulesLeftBar: 'bg-purple-500 shadow-[0_0_8px_#a855f7]',
+    rulesBadgeBg: 'bg-gradient-to-br from-purple-400 via-fuchsia-500 to-purple-800',
+    rulesBadgeText: 'text-white font-black',
+    rulesBadgeBorder: 'border border-purple-300',
+    rulesTitleText: 'text-purple-400 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-purple-500/25 text-purple-300 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(168, 85, 247, 0.14) 0%, rgba(126, 34, 206, 0.06) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-purple-500/35',
+    cardShadow: 'shadow-[0_0_14px_rgba(168,85,247,0.2),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-purple-300',
+    badgeBg: 'bg-gradient-to-br from-purple-400 via-fuchsia-500 to-purple-800',
     badgeText: 'text-white font-black',
-    badgeBorder: 'border-sky-300/90',
-    cardBorder: 'border-transparent',
-    cardBg: 'bg-gradient-to-b from-indigo-950/40 via-purple-950/30 to-slate-900/90',
-    cardGlow: 'shadow-glow-rank-ur',
-    cardClass: 'rank-card-ur animate-ur-aura',
-    shieldBorderColor: '#818cf8',
-    shieldBadgeBg: 'bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 text-white border-pink-400',
-    shieldGlowClass: 'shadow-shield-ur animate-ur-aura',
-    accentColor: '#c084fc',
+    badgeBorder: 'border border-purple-300',
+    badgeGlow: 'shadow-[0_0_8px_rgba(168,85,247,0.5)]',
+  },
+
+  // ================= A+: VERMELHO / MUITO BOM (7.1 - 8.0) =================
+  'A+': {
+    rank: 'A+',
+    label: 'Muito bom',
+    subtitle: 'Destaque no jogo',
+    range: '7.1 a 8.0',
+    colorHex: '#ef4444',
+    borderHex: '#dc2626',
+    bgHex: 'rgba(239, 68, 68, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-red-500/10 to-transparent',
+    rulesCardBorder: 'border-red-500/30',
+    rulesLeftBar: 'bg-red-500 shadow-[0_0_8px_#ef4444]',
+    rulesBadgeBg: 'bg-gradient-to-br from-red-400 via-rose-500 to-red-800',
+    rulesBadgeText: 'text-white font-black',
+    rulesBadgeBorder: 'border border-red-300',
+    rulesTitleText: 'text-red-400 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-red-500/25 text-red-300 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(185, 28, 28, 0.06) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-red-500/35',
+    cardShadow: 'shadow-[0_0_12px_rgba(239,68,68,0.2),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-rose-400',
+    badgeBg: 'bg-gradient-to-br from-red-400 via-rose-500 to-red-800',
+    badgeText: 'text-white font-black',
+    badgeBorder: 'border border-red-300',
+    badgeGlow: 'shadow-[0_0_8px_rgba(239,68,68,0.5)]',
+  },
+
+  // ================= A: AZUL / BOM (6.1 - 7.0) =================
+  A: {
+    rank: 'A',
+    label: 'Bom',
+    subtitle: 'Acima da média',
+    range: '6.1 a 7.0',
+    colorHex: '#3b82f6',
+    borderHex: '#2563eb',
+    bgHex: 'rgba(59, 130, 246, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-blue-500/10 to-transparent',
+    rulesCardBorder: 'border-blue-500/30',
+    rulesLeftBar: 'bg-blue-500 shadow-[0_0_8px_#3b82f6]',
+    rulesBadgeBg: 'bg-gradient-to-br from-sky-400 via-blue-500 to-blue-800',
+    rulesBadgeText: 'text-white font-black',
+    rulesBadgeBorder: 'border border-blue-300',
+    rulesTitleText: 'text-blue-400 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-blue-500/25 text-blue-300 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(59, 130, 246, 0.14) 0%, rgba(29, 78, 216, 0.06) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-blue-500/35',
+    cardShadow: 'shadow-[0_0_12px_rgba(59,130,246,0.2),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-sky-400',
+    badgeBg: 'bg-gradient-to-br from-sky-400 via-blue-500 to-blue-800',
+    badgeText: 'text-white font-black',
+    badgeBorder: 'border border-blue-300',
+    badgeGlow: 'shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+  },
+
+  // ================= B: VERDE / MEDIANO (4.6 - 6.0) =================
+  B: {
+    rank: 'B',
+    label: 'Mediano',
+    subtitle: 'Jogador padrão de pelada',
+    range: '4.6 a 6.0',
+    colorHex: '#10b981',
+    borderHex: '#059669',
+    bgHex: 'rgba(168, 85, 247, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-emerald-500/10 to-transparent',
+    rulesCardBorder: 'border-emerald-500/30',
+    rulesLeftBar: 'bg-emerald-500 shadow-[0_0_8px_#10b981]',
+    rulesBadgeBg: 'bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-800',
+    rulesBadgeText: 'text-white font-black',
+    rulesBadgeBorder: 'border border-emerald-300',
+    rulesTitleText: 'text-emerald-400 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-emerald-500/25 text-emerald-300 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(4, 120, 87, 0.06) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-emerald-500/35',
+    cardShadow: 'shadow-[0_0_10px_rgba(16,185,129,0.2),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-emerald-400',
+    badgeBg: 'bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-800',
+    badgeText: 'text-white font-black',
+    badgeBorder: 'border border-emerald-300',
+    badgeGlow: 'shadow-[0_0_8px_rgba(16,185,129,0.4)]',
+  },
+
+  // ================= C: BRONZE / FRACO (2.1 - 4.5) =================
+  C: {
+    rank: 'C',
+    label: 'Fraco',
+    subtitle: 'Precisa de ritmo',
+    range: '2.1 a 4.5',
+    colorHex: '#d97706',
+    borderHex: '#b45309',
+    bgHex: 'rgba(217, 119, 6, 0.1)',
+
+    rulesCardBg: 'bg-gradient-to-r from-amber-600/10 to-transparent',
+    rulesCardBorder: 'border-amber-600/30',
+    rulesLeftBar: 'bg-amber-600',
+    rulesBadgeBg: 'bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800',
+    rulesBadgeText: 'text-amber-100 font-bold',
+    rulesBadgeBorder: 'border border-amber-500/50',
+    rulesTitleText: 'text-amber-500 font-bold',
+    rulesScoreBadge: 'bg-black/30 border border-amber-600/20 text-amber-400 font-bold',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, rgba(146, 64, 14, 0.05) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-amber-600/35',
+    cardShadow: 'shadow-[0_0_8px_rgba(217,119,6,0.15),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-amber-400',
+    badgeBg: 'bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800',
+    badgeText: 'text-amber-100 font-bold',
+    badgeBorder: 'border border-amber-400',
+    badgeGlow: '',
+  },
+
+  // ================= D: AÇO / MUITO FRACO (0.5 - 2.0) =================
+  D: {
+    rank: 'D',
+    label: 'Muito fraco',
+    subtitle: 'Nível iniciante',
+    range: '0.5 a 2.0',
+    colorHex: '#64748b',
+    borderHex: '#475569',
+    bgHex: 'rgba(100, 116, 139, 0.1)',
+
+    rulesCardBg: 'bg-slate-800/30',
+    rulesCardBorder: 'border-slate-700/40',
+    rulesLeftBar: 'bg-slate-600',
+    rulesBadgeBg: 'bg-gradient-to-br from-slate-400 via-slate-600 to-slate-800',
+    rulesBadgeText: 'text-slate-200 font-medium',
+    rulesBadgeBorder: 'border border-slate-500/50',
+    rulesTitleText: 'text-slate-400 font-medium',
+    rulesScoreBadge: 'bg-black/30 border border-slate-700/40 text-slate-400 font-medium',
+
+    cardBgStyle: 'linear-gradient(135deg, rgba(100, 116, 139, 0.1) 0%, rgba(51, 65, 85, 0.05) 50%, rgba(15, 23, 42, 0.95) 100%)',
+    cardBorder: 'border border-slate-700/40',
+    cardShadow: 'shadow-[0_0_6px_rgba(100,116,139,0.1),0_8px_16px_rgba(0,0,0,0.4)]',
+    ratingTextColor: 'text-slate-400',
+    badgeBg: 'bg-gradient-to-br from-slate-400 via-slate-600 to-slate-800',
+    badgeText: 'text-slate-200 font-bold',
+    badgeBorder: 'border border-slate-400',
+    badgeGlow: '',
   },
 };
 
-/**
- * Converte a média geral numérica (0.5 a 10.0) no Rank correspondente.
- * Tabela oficial:
- * 0.5 a 2.0 = D (Muito fraco)
- * 2.5 a 4.5 = C (Fraco)
- * 5.0 a 6.0 = B (Mediano)
- * 6.5 a 7.0 = A (Bom)
- * 7.5 a 8.0 = A+ (Muito bom)
- * 8.5 a 9.0 = S (Excelente)
- * 9.5 (9.1 a 9.9) = SS (Excepcional)
- * 10 = UR (Fora da curva)
- */
-export const getRankInfo = (score: number = 5.0): RankDetails => {
+export const getRankInfo = (score: number = 5.0): RankToken => {
   if (score >= 10.0) return RANKS_MAP.UR;
   if (score >= 9.1) return RANKS_MAP.SS;
   if (score >= 8.1) return RANKS_MAP.S;

@@ -9,7 +9,7 @@ export interface DrawPayload {
 
 export const drawService = {
   /**
-   * Dispara o algoritmo de sorteio equilibrado no backend.
+   * Executa o sorteio balanceado diretamente no backend.
    */
   async drawTeams(payload: DrawPayload): Promise<DrawResponse> {
     const response = await api.post<ApiResponse<DrawResponse>>('/draw', payload);
