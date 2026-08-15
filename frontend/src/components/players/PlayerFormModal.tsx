@@ -8,7 +8,12 @@ import {
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { PlayerAvatar } from "../common/PlayerAvatar";
-import { POKEMON_PRESETS, PokemonPreset } from "../../constants/pokemons";
+import {
+  PokemonItem,
+  POPULAR_POKEMONS,
+  getFullPokemonList,
+  filterPokemons,
+} from "../../services/pokemonService";
 import {
   User,
   ShieldAlert,
@@ -16,6 +21,7 @@ import {
   Image as ImageIcon,
   Lock,
   Activity,
+  Search,
 } from "lucide-react";
 
 interface PlayerFormModalProps {
@@ -43,8 +49,23 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Pokémons da PokeAPI
+  const [allPokemons, setAllPokemons] = useState<PokemonItem[]>(POPULAR_POKEMONS);
+  const [pokemonSearch, setPokemonSearch] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      getFullPokemonList().then((list) => {
+        setAllPokemons(list);
+      });
+    }
+  }, [isOpen]);
+
+  const displayedPokemons = filterPokemons(allPokemons, pokemonSearch, 36);
+
   useEffect(() => {
     setErrorMsg(null);
+    setPokemonSearch("");
     if (editingPlayer) {
       setName(editingPlayer.name);
       setPhotoUrl(editingPlayer.photoUrl || "");
@@ -182,7 +203,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-cyan-400" />
-              <span>Condicionamento Físico / Fôlego (25% peso)</span>
+              <span>Condicionamento Físico / Fôlego (40% peso)</span>
             </label>
             <span className="text-xs font-mono font-black text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/30">
               🏃 {physicalRating.toFixed(1)} / 10
@@ -244,67 +265,97 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             </span>
           )}
 
-          {/* Avatares Rápidos de Pokémons */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-semibold text-slate-300">
-                Escolha um Pokémon (Sem repetição):
-              </span>
-              <span className="text-[10px] text-emerald-400 font-medium">
-                {POKEMON_PRESETS.length} disponíveis
+          {/* Seletor com Busca da PokeAPI (1025 Pokémons) */}
+          <div className="space-y-2 pt-1 border-t border-slate-800/80">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Escolha seu Pokémon Oficial:</span>
+              </label>
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                1025 Disponíveis
               </span>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin">
-              {POKEMON_PRESETS.map((preset: PokemonPreset, idx: number) => {
-                const isSelected = photoUrl === preset.url;
-                const isTaken = isUrlInUse(preset.url);
 
-                return (
-                  <button
-                    type="button"
-                    key={idx}
-                    disabled={isTaken}
-                    onClick={() => {
-                      if (isTaken) return;
-                      setPhotoUrl(preset.url);
-                      setErrorMsg(null);
-                      if (!name.trim()) {
-                        setName(preset.name);
-                      }
-                      if (!editingPlayer) {
-                        setPosition(preset.defaultPosition);
-                      }
-                    }}
-                    title={isTaken ? `${preset.name} (Já em uso)` : preset.name}
-                    className={`relative group flex flex-col items-center shrink-0 p-1 rounded-xl transition-all ${
-                      isSelected
-                        ? "bg-emerald-500/20 border-2 border-emerald-500 scale-105 shadow-glow-emerald"
-                        : isTaken
-                          ? "bg-slate-900/30 border border-slate-800/40 opacity-30 cursor-not-allowed grayscale"
-                          : "bg-slate-900/60 border border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-lg overflow-hidden flex items-center justify-center p-0.5">
-                      <img
-                        src={preset.url}
-                        alt={preset.name}
-                        className="w-full h-full object-contain aspect-square group-hover:scale-110 transition-transform"
-                        loading="lazy"
-                      />
-                    </div>
-                    <span className="text-[9px] text-slate-300 font-medium truncate max-w-[48px] mt-0.5">
-                      {preset.name}
-                    </span>
+            {/* Input de Busca Rápida de Pokémon */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou nº (ex: Pikachu, Gengar, Mewtwo, 150)..."
+                value={pokemonSearch}
+                onChange={(e) => setPokemonSearch(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+              />
+              {pokemonSearch && (
+                <button
+                  type="button"
+                  onClick={() => setPokemonSearch("")}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-white text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-                    {/* Badge de "Em uso" */}
-                    {isTaken && (
-                      <div className="absolute inset-0 bg-slate-950/70 rounded-xl flex items-center justify-center">
-                        <Lock className="w-3.5 h-3.5 text-slate-400" />
+            {/* Grid / Carrossel de Pokémons Pesquisados */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin max-h-[140px]">
+              {displayedPokemons.length === 0 ? (
+                <div className="py-3 text-center text-xs text-slate-500 w-full font-mono">
+                  Nenhum Pokémon encontrado para "{pokemonSearch}".
+                </div>
+              ) : (
+                displayedPokemons.map((pokemon) => {
+                  const isSelected = photoUrl === pokemon.photoUrl;
+                  const isTaken = isUrlInUse(pokemon.photoUrl);
+
+                  return (
+                    <button
+                      type="button"
+                      key={pokemon.id}
+                      disabled={isTaken}
+                      onClick={() => {
+                        if (isTaken) return;
+                        setPhotoUrl(pokemon.photoUrl);
+                        setErrorMsg(null);
+                        if (!name.trim()) {
+                          setName(pokemon.displayName);
+                        }
+                      }}
+                      title={isTaken ? `${pokemon.displayName} (Já em uso)` : `#${pokemon.id} ${pokemon.displayName}`}
+                      className={`relative group flex flex-col items-center shrink-0 p-1.5 rounded-xl transition-all border ${
+                        isSelected
+                          ? "bg-amber-500/20 border-amber-400 scale-105 shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+                          : isTaken
+                            ? "bg-slate-900/30 border-slate-800/40 opacity-30 cursor-not-allowed grayscale"
+                            : "bg-slate-900/80 border-slate-800 hover:border-slate-600 opacity-80 hover:opacity-100 hover:scale-105"
+                      }`}
+                    >
+                      <div className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-lg overflow-hidden flex items-center justify-center p-0.5">
+                        <img
+                          src={pokemon.photoUrl}
+                          alt={pokemon.displayName}
+                          className="w-full h-full object-contain aspect-square group-hover:scale-110 transition-transform"
+                          loading="lazy"
+                        />
                       </div>
-                    )}
-                  </button>
-                );
-              })}
+                      <span className="text-[9px] text-slate-300 font-bold truncate max-w-[56px] mt-0.5 text-center">
+                        {pokemon.displayName}
+                      </span>
+                      <span className="text-[8px] text-slate-500 font-mono">
+                        #{pokemon.id}
+                      </span>
+
+                      {/* Badge de "Em uso" */}
+                      {isTaken && (
+                        <div className="absolute inset-0 bg-slate-950/75 rounded-xl flex items-center justify-center">
+                          <Lock className="w-3.5 h-3.5 text-rose-400" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

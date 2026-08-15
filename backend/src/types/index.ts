@@ -16,7 +16,7 @@ export interface PlayerInternal {
   physicalRating: number;
   baseSkillRating: number;
   skillRating: number;
-  overallRating: number; // (Skill * 0.75) + (Físico * 0.25)
+  overallRating: number; // (Skill * 0.60) + (Físico * 0.40)
   ratingCount: number;
   maxRatingsAllowed: number;
   createdAt: Date;

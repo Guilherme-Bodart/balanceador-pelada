@@ -126,7 +126,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               {/* Seletor Visual de Nota de Skill */}
               <div className="text-center py-4 bg-slate-900/50 rounded-2xl border border-slate-800/80">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Nota Técnica / Skill (75% peso no equilíbrio)
+                  Nota Técnica / Skill (60% peso no equilíbrio)
                 </span>
                 <div className="flex items-center justify-center gap-2">
                   <Zap className="w-7 h-7 text-amber-400 fill-amber-400 animate-pulse" />

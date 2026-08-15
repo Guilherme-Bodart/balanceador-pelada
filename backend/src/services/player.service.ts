@@ -10,7 +10,7 @@ import {
 
 export class PlayerService {
   /**
-   * Formata os dados públicos do jogador calculando Skill (75%), Físico (25%), Média Composta e Limite de Votos.
+   * Formata os dados públicos do jogador calculando Skill (60%), Físico (40%), Média Composta e Limite de Votos.
    */
   public toPublicPlayer(player: any, totalPlayersCount: number = 1): PublicPlayerDTO {
     const ratings = player.ratings || [];
@@ -24,9 +24,9 @@ export class PlayerService {
       skillRating = Math.round((sum / ratingCount) * 10) / 10;
     }
 
-    // Nota Composta: 75% Peso Técnico (Skill) + 25% Peso Físico (ou apenas Físico se ainda não avaliado)
+    // Nota Composta: 60% Peso Técnico (Skill) + 40% Peso Físico (ou apenas Físico se ainda não avaliado)
     const overallRating = skillRating > 0
-      ? Math.round(((skillRating * 0.75) + (physicalRating * 0.25)) * 10) / 10
+      ? Math.round(((skillRating * 0.60) + (physicalRating * 0.40)) * 10) / 10
       : physicalRating;
 
     return {
