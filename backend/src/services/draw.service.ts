@@ -58,7 +58,7 @@ export class DrawService {
     const totalSelected = allSelectedPlayers.length;
 
     // 2. Separar Goleiros e Jogadores de Linha (respeitando escolha do dia se informada)
-    const customGkSet = dto.goalkeeperIds ? new Set(dto.goalkeeperIds) : null;
+    const customGkSet = dto.goalkeeperIds && dto.goalkeeperIds.length > 0 ? new Set(dto.goalkeeperIds) : null;
 
     const goalkeepers = allSelectedPlayers
       .filter((p) => (customGkSet ? customGkSet.has(p.id) : p.position === 'GOALKEEPER'))

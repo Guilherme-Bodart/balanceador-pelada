@@ -295,4 +295,45 @@ export class PlayerService {
       message: 'Jogador excluído com sucesso!',
     };
   }
+
+  /**
+   * Retorna o histórico de votos individuais de um atleta.
+   */
+  public async getPlayerRatings(playerId: string) {
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      include: {
+        ratings: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!player) {
+      throw new Error('Jogador não encontrado.');
+    }
+
+    return {
+      playerId: player.id,
+      playerName: player.name,
+      totalVotes: player.ratings.length,
+      ratings: player.ratings,
+    };
+  }
+
+  /**
+   * Retorna todos os votos registrados no banco para auditoria.
+   */
+  public async getAllRatingsAudit() {
+    const ratings = await prisma.rating.findMany({
+      include: {
+        player: {
+          select: { id: true, name: true, position: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return ratings;
+  }
 }

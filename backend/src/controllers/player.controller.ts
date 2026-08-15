@@ -104,4 +104,23 @@ export class PlayerController {
       next(error);
     }
   };
+
+  public getRatings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const data = await this.playerService.getPlayerRatings(id);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getAllRatings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const data = await this.playerService.getAllRatingsAudit();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

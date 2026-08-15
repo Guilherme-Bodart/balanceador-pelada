@@ -34,19 +34,25 @@ export const DrawPage: React.FC<DrawPageProps> = ({
 }) => {
   const [searchFilter, setSearchFilter] = useState('');
   const [filterView, setFilterView] = useState<'ALL' | 'SELECTED' | 'GK'>('ALL');
-  const [customGkIds, setCustomGkIds] = useState<string[]>([]);
+  const [customGkOverrides, setCustomGkOverrides] = useState<Record<string, boolean>>({});
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  // Determina se o atleta está escalado como goleiro (padrão do banco ou sobrescrito na sessão)
+  const isPlayerGk = (player: Player) => {
+    if (customGkOverrides[player.id] !== undefined) {
+      return customGkOverrides[player.id];
+    }
+    return player.position === 'GOALKEEPER';
+  };
 
   // Goleiros Selecionados
   const selectedPlayers = players.filter((p) => selectedPlayerIds.includes(p.id));
-  const selectedGkCount = selectedPlayers.filter(
-    (p) => customGkIds.includes(p.id) || (!customGkIds.includes(p.id) && p.position === 'GOALKEEPER')
-  ).length;
+  const selectedGkCount = selectedPlayers.filter((p) => isPlayerGk(p)).length;
 
   const filteredPlayers = players.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchFilter.toLowerCase());
     const isSelected = selectedPlayerIds.includes(p.id);
-    const isGk = customGkIds.includes(p.id) || (!customGkIds.includes(p.id) && p.position === 'GOALKEEPER');
+    const isGk = isPlayerGk(p);
 
     if (filterView === 'SELECTED') return matchesSearch && isSelected;
     if (filterView === 'GK') return matchesSearch && isGk;
@@ -55,9 +61,13 @@ export const DrawPage: React.FC<DrawPageProps> = ({
 
   const handleToggleGoalkeeper = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setCustomGkIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    const player = players.find((p) => p.id === id);
+    if (!player) return;
+    const currentIsGk = isPlayerGk(player);
+    setCustomGkOverrides((prev) => ({
+      ...prev,
+      [id]: !currentIsGk,
+    }));
   };
 
   const handleExecuteDraw = async () => {
@@ -65,7 +75,11 @@ export const DrawPage: React.FC<DrawPageProps> = ({
       alert('Selecione ao menos 2 atletas para realizar o sorteio.');
       return;
     }
-    await onDraw(selectedPlayerIds, customGkIds);
+    const currentGkIds = selectedPlayers
+      .filter((p) => isPlayerGk(p))
+      .map((p) => p.id);
+
+    await onDraw(selectedPlayerIds, currentGkIds);
   };
 
   return (
@@ -210,9 +224,7 @@ export const DrawPage: React.FC<DrawPageProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 pt-1">
               {filteredPlayers.map((player) => {
                 const isSelected = selectedPlayerIds.includes(player.id);
-                const isGk =
-                  customGkIds.includes(player.id) ||
-                  (!customGkIds.includes(player.id) && player.position === 'GOALKEEPER');
+                const isGk = isPlayerGk(player);
                 const rInfo = getRankInfo(player.overallRating);
 
                 return (
