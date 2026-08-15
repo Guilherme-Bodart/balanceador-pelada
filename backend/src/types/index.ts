@@ -13,19 +13,29 @@ export interface PlayerInternal {
   name: string;
   photoUrl: string | null;
   position: PlayerPosition;
+  physicalRating: number;
+  baseSkillRating: number;
+  skillRating: number;
+  overallRating: number; // (Skill * 0.75) + (Físico * 0.25)
+  ratingCount: number;
+  maxRatingsAllowed: number;
   createdAt: Date;
   updatedAt: Date;
-  ratingCount: number;
-  overallRating: number; // Usado estritamente no backend para o algoritmo de equilíbrio
   ratings?: RatingEntity[];
 }
 
-// DTO público retornado nas APIs do frontend (TOTALMENTE SEM NOTAS nem médias individuais)
+// DTO público retornado nas APIs do frontend (com notas e médias para Ranks)
 export interface PublicPlayerDTO {
   id: string;
   name: string;
   photoUrl: string | null;
   position: PlayerPosition;
+  physicalRating: number;
+  baseSkillRating: number;
+  skillRating: number;
+  overallRating: number;
+  ratingCount: number;
+  maxRatingsAllowed: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,16 +44,18 @@ export interface CreatePlayerDTO {
   name: string;
   photoUrl?: string;
   position?: PlayerPosition;
+  physicalRating?: number;
 }
 
 export interface UpdatePlayerDTO {
   name?: string;
   photoUrl?: string;
   position?: PlayerPosition;
+  physicalRating?: number;
 }
 
 export interface AddRatingDTO {
-  value: number; // 1.0 a 10.0
+  value: number; // 1.0 a 10.0 (Skill)
 }
 
 export interface DrawRequestDTO {
@@ -52,7 +64,6 @@ export interface DrawRequestDTO {
   goalkeeperIds?: string[]; // IDs específicos designados como goleiros hoje
 }
 
-// Time público sem expor as notas individuais dos atletas
 export interface PublicTeam {
   name: string;
   goalkeeper: PublicPlayerDTO | null;
@@ -64,8 +75,8 @@ export interface DrawResponseDTO {
   teamA: PublicTeam;
   teamB: PublicTeam;
   reserves: PublicPlayerDTO[];
-  differenceScore: number; // Diferença de pontuação entre as equipes
-  advantageTeam?: string; // Ex: "Time 1 (+0.5 pts)" ou "Empate Técnico"
+  differenceScore: number;
+  advantageTeam?: string;
   isEquilibrado: boolean;
   drawnAt: string;
 }

@@ -42,9 +42,17 @@ export const playerService = {
   },
 
   /**
-   * Adiciona uma nova nota (1.0 a 10.0) para o jogador de forma confidencial.
+   * Adiciona uma nova nota de Skill (1.0 a 10.0) para o jogador.
    */
   async addRating(id: string, value: number): Promise<void> {
     await api.post(`/players/${id}/ratings`, { value });
+  },
+
+  /**
+   * Dispara a Virada de Mês / Reset Mensal com consolidação de médias.
+   */
+  async monthlyReset(): Promise<{ message: string; consolidatedCount: number }> {
+    const response = await api.post<ApiResponse<{ message: string; consolidatedCount: number }>>('/players/monthly-reset');
+    return response.data.data;
   },
 };

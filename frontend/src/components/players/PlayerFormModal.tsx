@@ -4,7 +4,7 @@ import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 import { POKEMON_PRESETS, PokemonPreset } from '../../constants/pokemons';
-import { User, ShieldAlert, Sparkles, Image as ImageIcon, Lock } from 'lucide-react';
+import { User, ShieldAlert, Sparkles, Image as ImageIcon, Lock, Activity } from 'lucide-react';
 
 interface PlayerFormModalProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
   const [name, setName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [position, setPosition] = useState<PlayerPosition>('FIELD');
+  const [physicalRating, setPhysicalRating] = useState<number>(5.0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -33,10 +34,12 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       setName(editingPlayer.name);
       setPhotoUrl(editingPlayer.photoUrl || '');
       setPosition(editingPlayer.position);
+      setPhysicalRating(editingPlayer.physicalRating ?? 5.0);
     } else {
       setName('');
       setPhotoUrl('');
       setPosition('FIELD');
+      setPhysicalRating(5.0);
     }
   }, [editingPlayer, isOpen]);
 
@@ -65,6 +68,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             name: name.trim(),
             photoUrl: photoUrl.trim() || undefined,
             position,
+            physicalRating,
           },
           editingPlayer.id
         );
@@ -73,6 +77,7 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
           name: name.trim(),
           photoUrl: photoUrl.trim() || undefined,
           position,
+          physicalRating,
         });
       }
       onClose();
@@ -152,6 +157,35 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
               <ShieldAlert className="w-4 h-4" />
               <span>Goleiro Fixo</span>
             </button>
+          </div>
+        </div>
+
+        {/* Nota Única de Condicionamento Físico */}
+        <div className="glass-card rounded-2xl p-3.5 border border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <span>Condicionamento Físico / Fôlego (25% peso)</span>
+            </label>
+            <span className="text-xs font-mono font-black text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/30">
+              🏃 {physicalRating.toFixed(1)} / 10
+            </span>
+          </div>
+
+          <input
+            type="range"
+            min="1.0"
+            max="10.0"
+            step="0.5"
+            value={physicalRating}
+            onChange={(e) => setPhysicalRating(parseFloat(e.target.value))}
+            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+          />
+
+          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <span>1.0 (Cança rápido)</span>
+            <span>5.0 (Médio)</span>
+            <span>10.0 (Gás infinito)</span>
           </div>
         </div>
 

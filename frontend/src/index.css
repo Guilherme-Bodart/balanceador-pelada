@@ -3,6 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Design Tokens de Ranks (Variáveis CSS para fácil customização) */
+    --rank-d-color: #71717a;
+    --rank-d-border: rgba(113, 113, 122, 0.4);
+    --rank-d-bg: rgba(39, 39, 42, 0.4);
+
+    --rank-c-color: #d97706;
+    --rank-c-border: rgba(217, 119, 6, 0.45);
+    --rank-c-bg: rgba(120, 53, 15, 0.25);
+
+    --rank-b-color: #94a3b8;
+    --rank-b-border: rgba(148, 163, 184, 0.45);
+    --rank-b-bg: rgba(51, 65, 85, 0.3);
+
+    --rank-a-color: #10b981;
+    --rank-a-border: rgba(16, 185, 129, 0.55);
+    --rank-a-bg: rgba(6, 78, 59, 0.25);
+
+    --rank-aplus-color: #a855f7;
+    --rank-aplus-border: rgba(168, 85, 247, 0.6);
+    --rank-aplus-bg: rgba(88, 28, 135, 0.25);
+
+    --rank-s-color: #ef4444;
+    --rank-s-border: rgba(239, 68, 68, 0.65);
+    --rank-s-bg: rgba(127, 29, 29, 0.25);
+
+    --rank-ss-color: #fbbf24;
+    --rank-ss-border: rgba(251, 191, 36, 0.85);
+    --rank-ss-bg: rgba(120, 53, 15, 0.3);
+
+    --rank-ur-color: #38bdf8;
+    --rank-ur-border: rgba(168, 85, 247, 0.9);
+    --rank-ur-bg: rgba(49, 46, 129, 0.35);
+
+    /* Cor Base do Fundo do Escudo (Shield) */
+    --shield-base-bg: rgba(15, 23, 42, 0.85);
+  }
+
   * {
     -webkit-tap-highlight-color: transparent;
   }
@@ -67,12 +105,47 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Shimmer animation */
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(0.98); }
+/* Card Glow & Styles para Ranks Especiais */
+.rank-card-ur {
+  background: linear-gradient(135deg, rgba(49, 46, 129, 0.35), rgba(88, 28, 135, 0.25), rgba(15, 23, 42, 0.8));
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  position: relative;
 }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s ease-in-out infinite;
+.rank-card-ur::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc, #f472b6, #38bdf8);
+  background-size: 300% 300%;
+  animation: ur-border-spin 6s linear infinite;
+  z-index: -1;
+  opacity: 0.85;
+}
+
+.rank-card-ss {
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.3), rgba(26, 36, 54, 0.7));
+  border: 1.5px solid rgba(251, 191, 36, 0.75);
+}
+
+/* Formato de Escudo (Shield Crest) para o resultado do sorteio */
+.player-shield-wrapper {
+  position: relative;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-shield-wrapper:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.player-shield-shape {
+  background: var(--shield-base-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px 12px 28px 28px;
+  position: relative;
+  overflow: hidden;
 }

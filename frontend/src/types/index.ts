@@ -5,6 +5,12 @@ export interface Player {
   name: string;
   photoUrl: string | null;
   position: PlayerPosition;
+  physicalRating: number;
+  baseSkillRating: number;
+  skillRating: number;
+  overallRating: number;
+  ratingCount: number;
+  maxRatingsAllowed: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,12 +19,14 @@ export interface CreatePlayerInput {
   name: string;
   photoUrl?: string;
   position?: PlayerPosition;
+  physicalRating?: number;
 }
 
 export interface UpdatePlayerInput {
   name?: string;
   photoUrl?: string;
   position?: PlayerPosition;
+  physicalRating?: number;
 }
 
 export interface Team {

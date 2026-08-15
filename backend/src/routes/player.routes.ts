@@ -19,7 +19,10 @@ router.put('/:id', controller.update);
 // DELETE /api/players/:id - Remove jogador
 router.delete('/:id', controller.delete);
 
-// POST /api/players/:id/ratings - Atribui uma nota (1.0 - 10.0)
+// POST /api/players/monthly-reset - Executa virada de mês / reset de notas com consolidação de base
+router.post('/monthly-reset', controller.monthlyReset);
+
+// POST /api/players/:id/ratings - Atribui uma nota de Skill (1.0 - 10.0)
 router.post('/:id/ratings', controller.addRating);
 
 export const playerRoutes = router;

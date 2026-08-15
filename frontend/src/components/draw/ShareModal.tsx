@@ -3,6 +3,7 @@ import { DrawResponse } from '../../types';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Copy, Check, Send } from 'lucide-react';
+import { getRankInfo } from '../../constants/ranks';
 
 interface ShareModalProps {
   result: DrawResponse | null;
@@ -33,11 +34,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     // Time 1
     text += `🟢 *${teamA.name.toUpperCase()}* (${teamA.totalPlayers} atletas)\n`;
     if (teamA.goalkeeper) {
-      text += `🧤 Goleiro: ${teamA.goalkeeper.name}\n`;
+      const r = getRankInfo(teamA.goalkeeper.overallRating);
+      text += `🧤 Goleiro: ${teamA.goalkeeper.name} [Rank ${r.rank}]\n`;
     }
     text += `🏃 Linha:\n`;
     teamA.fieldPlayers.forEach((p, idx) => {
-      text += `  ${idx + 1}. ${p.name}\n`;
+      const r = getRankInfo(p.overallRating);
+      text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
     });
 
     text += `\n------------------------\n\n`;
@@ -45,19 +48,22 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     // Time 2
     text += `🔵 *${teamB.name.toUpperCase()}* (${teamB.totalPlayers} atletas)\n`;
     if (teamB.goalkeeper) {
-      text += `🧤 Goleiro: ${teamB.goalkeeper.name}\n`;
+      const r = getRankInfo(teamB.goalkeeper.overallRating);
+      text += `🧤 Goleiro: ${teamB.goalkeeper.name} [Rank ${r.rank}]\n`;
     }
     text += `🏃 Linha:\n`;
     teamB.fieldPlayers.forEach((p, idx) => {
-      text += `  ${idx + 1}. ${p.name}\n`;
+      const r = getRankInfo(p.overallRating);
+      text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
     });
 
-    // Reservas
+    // Reservas (se houver)
     if (reserves.length > 0) {
       text += `\n------------------------\n`;
       text += `🔄 *PRÓXIMOS / RESERVAS:*\n`;
       reserves.forEach((p, idx) => {
-        text += `  ${idx + 1}. ${p.name} (${p.position === 'GOALKEEPER' ? 'Goleiro' : 'Linha'})\n`;
+        const r = getRankInfo(p.overallRating);
+        text += `  ${idx + 1}. ${p.name} [Rank ${r.rank}]\n`;
       });
     }
 
@@ -83,7 +89,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Compartilhar Escalação"
-      subtitle="Envie os times prontos no grupo da pelada"
+      subtitle="Envie os times com Ranks no grupo da pelada"
       maxWidth="md"
     >
       <div className="space-y-4">

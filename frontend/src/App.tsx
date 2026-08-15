@@ -32,7 +32,7 @@ export const App: React.FC = () => {
       });
     } catch (err: any) {
       setErrorMessage(
-        err.message || 'Não foi possível conectar com o backend em http://localhost:3333'
+        err.message || 'Não foi possível conectar com o backend.'
       );
     } finally {
       setIsLoading(false);
@@ -61,6 +61,11 @@ export const App: React.FC = () => {
 
   const handleRatePlayer = async (id: string, rating: number) => {
     await playerService.addRating(id, rating);
+    await loadPlayers();
+  };
+
+  const handleMonthlyReset = async () => {
+    await playerService.monthlyReset();
     await loadPlayers();
   };
 
@@ -108,6 +113,7 @@ export const App: React.FC = () => {
             onSavePlayer={handleSavePlayer}
             onDeletePlayer={handleDeletePlayer}
             onRatePlayer={handleRatePlayer}
+            onMonthlyReset={handleMonthlyReset}
             isLoading={isLoading}
           />
         )}

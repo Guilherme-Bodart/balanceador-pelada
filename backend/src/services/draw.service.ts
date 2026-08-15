@@ -25,6 +25,12 @@ export class DrawService {
       name: player.name,
       photoUrl: player.photoUrl,
       position: player.position,
+      physicalRating: player.physicalRating,
+      baseSkillRating: player.baseSkillRating,
+      skillRating: player.skillRating,
+      overallRating: player.overallRating,
+      ratingCount: player.ratingCount,
+      maxRatingsAllowed: player.maxRatingsAllowed,
       createdAt: player.createdAt,
       updatedAt: player.updatedAt,
     };

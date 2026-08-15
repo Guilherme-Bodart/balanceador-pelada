@@ -35,11 +35,12 @@ export class PlayerController {
 
   public create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { name, photoUrl, position } = req.body;
+      const { name, photoUrl, position, physicalRating } = req.body;
       const player = await this.playerService.createPlayer({
         name,
         photoUrl,
         position,
+        physicalRating: physicalRating !== undefined ? Number(physicalRating) : undefined,
       });
 
       res.status(201).json({ success: true, data: player, message: 'Jogador cadastrado com sucesso!' });
@@ -51,9 +52,14 @@ export class PlayerController {
   public update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const { name, photoUrl, position } = req.body;
+      const { name, photoUrl, position, physicalRating } = req.body;
 
-      const player = await this.playerService.updatePlayer(id, { name, photoUrl, position });
+      const player = await this.playerService.updatePlayer(id, {
+        name,
+        photoUrl,
+        position,
+        physicalRating: physicalRating !== undefined ? Number(physicalRating) : undefined,
+      });
       res.status(200).json({ success: true, data: player, message: 'Jogador atualizado com sucesso!' });
     } catch (error) {
       next(error);
@@ -79,7 +85,20 @@ export class PlayerController {
       res.status(200).json({
         success: true,
         data: null,
-        message: `Sua avaliação (${Number(value).toFixed(1)}) foi registrada com sucesso de forma sigilosa!`,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public monthlyReset = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.playerService.performMonthlyReset();
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: result.message,
       });
     } catch (error) {
       next(error);
