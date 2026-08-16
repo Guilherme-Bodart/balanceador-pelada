@@ -35,12 +35,14 @@ export class PlayerController {
 
   public create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { name, photoUrl, position, physicalRating } = req.body;
+      const { name, photoUrl, position, physicalRating, basePhysicalRating, baseSkillRating } = req.body;
       const player = await this.playerService.createPlayer({
         name,
         photoUrl,
         position,
         physicalRating: physicalRating !== undefined ? Number(physicalRating) : undefined,
+        basePhysicalRating: basePhysicalRating !== undefined ? Number(basePhysicalRating) : undefined,
+        baseSkillRating: baseSkillRating !== undefined ? Number(baseSkillRating) : undefined,
       });
 
       res.status(201).json({ success: true, data: player, message: 'Jogador cadastrado com sucesso!' });
@@ -52,13 +54,15 @@ export class PlayerController {
   public update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const { name, photoUrl, position, physicalRating } = req.body;
+      const { name, photoUrl, position, physicalRating, basePhysicalRating, baseSkillRating } = req.body;
 
       const player = await this.playerService.updatePlayer(id, {
         name,
         photoUrl,
         position,
         physicalRating: physicalRating !== undefined ? Number(physicalRating) : undefined,
+        basePhysicalRating: basePhysicalRating !== undefined ? Number(basePhysicalRating) : undefined,
+        baseSkillRating: baseSkillRating !== undefined ? Number(baseSkillRating) : undefined,
       });
       res.status(200).json({ success: true, data: player, message: 'Jogador atualizado com sucesso!' });
     } catch (error) {
@@ -79,12 +83,17 @@ export class PlayerController {
   public addRating = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const { value } = req.body;
+      const { skill, physical, value } = req.body;
 
-      const result = await this.playerService.addRating(id, { value: Number(value) });
+      const result = await this.playerService.addRating(id, {
+        skill: skill !== undefined ? Number(skill) : undefined,
+        physical: physical !== undefined ? Number(physical) : undefined,
+        value: value !== undefined ? Number(value) : undefined,
+      });
+
       res.status(200).json({
         success: true,
-        data: null,
+        data: result,
         message: result.message,
       });
     } catch (error) {

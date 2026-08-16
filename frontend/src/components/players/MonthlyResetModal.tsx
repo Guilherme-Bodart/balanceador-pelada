@@ -78,10 +78,10 @@ export const MonthlyResetModal: React.FC<MonthlyResetModalProps> = ({
             </div>
             <ul className="space-y-1.5 list-disc list-inside text-[11px] text-slate-300">
               <li>
-                A <strong>média calculada de cada jogador neste mês</strong> se tornará a nova nota inicial de Skill do mês seguinte.
+                A <strong>média calculada de Skill (60%) e Físico (40%)</strong> neste mês se tornará a nova base inicial de cada atleta para o mês seguinte.
               </li>
               <li>
-                Os votos individuais são zerados, liberando espaço para até <strong>{totalPlayers} novos votos</strong> por jogador no novo mês.
+                Os votos individuais são zerados, liberando espaço para até <strong>{totalPlayers} novos votos</strong> de Skill e Físico por jogador no novo ciclo.
               </li>
               <li>
                 O Rank e o equilíbrio continuam evoluindo mês a mês sem perder o histórico do atleta!

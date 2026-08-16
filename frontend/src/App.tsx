@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Player, CreatePlayerInput, UpdatePlayerInput, DrawResponse } from './types';
+import { Player, CreatePlayerInput, UpdatePlayerInput, DrawResponse, AddRatingInput } from './types';
 import { playerService } from './services/playerService';
 import { drawService } from './services/drawService';
 import { Header } from './components/common/Header';
@@ -60,7 +60,7 @@ export const App: React.FC = () => {
     await loadPlayers();
   };
 
-  const handleRatePlayer = async (id: string, rating: number) => {
+  const handleRatePlayer = async (id: string, rating: AddRatingInput | number) => {
     await playerService.addRating(id, rating);
     await loadPlayers();
   };

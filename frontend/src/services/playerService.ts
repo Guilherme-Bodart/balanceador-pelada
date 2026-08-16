@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Player, CreatePlayerInput, UpdatePlayerInput, ApiResponse } from '../types';
+import { Player, CreatePlayerInput, UpdatePlayerInput, AddRatingInput, ApiResponse } from '../types';
 
 export const playerService = {
   /**
@@ -42,10 +42,11 @@ export const playerService = {
   },
 
   /**
-   * Registra avaliação de habilidade técnica (Skill) no banco.
+   * Registra avaliação de habilidade técnica (Skill) e/ou condicionamento físico (Físico).
    */
-  async addRating(id: string, value: number): Promise<void> {
-    await api.post(`/players/${id}/ratings`, { value });
+  async addRating(id: string, payload: AddRatingInput | number): Promise<void> {
+    const data = typeof payload === 'number' ? { skill: payload } : payload;
+    await api.post(`/players/${id}/ratings`, data);
   },
 
   /**

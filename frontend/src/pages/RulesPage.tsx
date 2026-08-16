@@ -84,15 +84,32 @@ export const RulesPage: React.FC = () => {
           <span>1. Separação de Goleiros Fixos</span>
         </div>
         <p>
-          Os atletas marcados com luva (<strong>🧤 Goleiro</strong>) são alocados estrategicamente entre o Time Vermelho e o Time Azul. Se houver disparidade entre eles, o algoritmo compensa na distribuição dos jogadores de linha!
+          Os atletas marcados com luva (<strong>🧤 Goleiro</strong>) são alocados estrategicamente entre os times. Se houver disparidade entre eles, o algoritmo compensa na distribuição dos jogadores de linha!
         </p>
       </div>
 
-      {/* Regra 2: Snake Draft & Otimização de Trocas */}
+      {/* Regra 2: Votação Independente de Skill e Físico */}
+      <div className="glass-panel rounded-3xl p-4 border border-slate-800 space-y-2">
+        <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
+          <Zap className="w-4 h-4" />
+          <span>2. Votação Independente: Skill (60%) & Físico (40%)</span>
+        </div>
+        <p>
+          Os participantes do elenco podem votar anonimamente nas duas características do atleta ao longo do mês:
+        </p>
+        <ul className="space-y-1 list-disc list-inside text-[11px] text-slate-400">
+          <li><strong>⚡ Skill (Habilidade Técnica - 60% peso)</strong>: controle de bola, passe, drible e finalização.</li>
+          <li><strong>🏃 Físico (Condicionamento - 40% peso)</strong>: fôlego, velocidade e intensidade.</li>
+          <li><strong>Regra do 0 (Pular)</strong>: se uma categoria estiver com nota 0, ela <strong>não é contabilizada</strong> no cálculo daquele atributo e não gasta o voto do ciclo.</li>
+          <li><strong>Votação Flexível</strong>: você pode votar apenas no Físico, apenas na Skill ou em ambos simultaneamente.</li>
+        </ul>
+      </div>
+
+      {/* Regra 3: Snake Draft & Otimização de Trocas */}
       <div className="glass-panel rounded-3xl p-4 border border-slate-800 space-y-2">
         <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
           <Sparkles className="w-4 h-4" />
-          <span>2. Snake Draft + Minimização de Disparidade</span>
+          <span>3. Snake Draft + Minimização de Disparidade</span>
         </div>
         <p>
           Os jogadores de linha são distribuídos no padrão serpente e refinados por um otimizador matemático guloso (Swap Minimization) para atingir a menor diferença de pontuação possível entre as duas equipes.

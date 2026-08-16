@@ -35,9 +35,12 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
         stats={[
           {
             label: 'SKL',
-            value: player.ratingCount > 0 || player.skillRating > 0 ? String(Math.round(player.skillRating * 10)) : '—',
+            value: (player.skillRatingCount > 0 || player.skillRating > 0) ? String(Math.round(player.skillRating * 10)) : '—',
           },
-          { label: 'FIS', value: String(Math.round(player.physicalRating * 10)) },
+          {
+            label: 'FIS',
+            value: (player.physicalRatingCount > 0 || player.physicalRating > 0) ? String(Math.round(player.physicalRating * 10)) : '—',
+          },
         ]}
         className="w-full max-w-[200px] mx-auto h-auto"
       />

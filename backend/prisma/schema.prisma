@@ -9,15 +9,16 @@ generator client {
 }
 
 model Player {
-  id        String   @id @default(uuid())
-  name      String
-  photoUrl  String?
-  position        String   @default("FIELD") // "FIELD" (Linha) ou "GOALKEEPER" (Goleiro)
-  physicalRating  Float    @default(5.0)     // Nota única de físico (1.0 a 10.0)
-  baseSkillRating Float    @default(5.0)     // Nota base de skill herdada do ciclo/mês anterior
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  ratings         Rating[]
+  id                 String   @id @default(uuid())
+  name               String
+  photoUrl           String?
+  position           String   @default("FIELD") // "FIELD" (Linha) ou "GOALKEEPER" (Goleiro)
+  physicalRating     Float    @default(0.0)     // Nota física base/atual
+  baseSkillRating    Float    @default(0.0)     // Nota base de skill herdada do ciclo/mês anterior
+  basePhysicalRating Float    @default(0.0)     // Nota base de físico herdada do ciclo/mês anterior
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  ratings            Rating[]
 
   @@map("players")
 }
@@ -25,6 +26,7 @@ model Player {
 model Rating {
   id        String   @id @default(uuid())
   value     Float    // Nota de 1.0 a 10.0
+  type      String   @default("SKILL") // "SKILL" ou "PHYSICAL"
   playerId  String
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())

@@ -1,8 +1,10 @@
 export type PlayerPosition = 'FIELD' | 'GOALKEEPER';
+export type RatingType = 'SKILL' | 'PHYSICAL';
 
 export interface RatingEntity {
   id: string;
   value: number;
+  type: RatingType;
   playerId: string;
   createdAt: Date;
 }
@@ -14,9 +16,12 @@ export interface PlayerInternal {
   photoUrl: string | null;
   position: PlayerPosition;
   physicalRating: number;
+  basePhysicalRating: number;
   baseSkillRating: number;
   skillRating: number;
   overallRating: number; // (Skill * 0.60) + (Físico * 0.40)
+  skillRatingCount: number;
+  physicalRatingCount: number;
   ratingCount: number;
   maxRatingsAllowed: number;
   createdAt: Date;
@@ -31,9 +36,12 @@ export interface PublicPlayerDTO {
   photoUrl: string | null;
   position: PlayerPosition;
   physicalRating: number;
+  basePhysicalRating: number;
   baseSkillRating: number;
   skillRating: number;
   overallRating: number;
+  skillRatingCount: number;
+  physicalRatingCount: number;
   ratingCount: number;
   maxRatingsAllowed: number;
   createdAt: Date;
@@ -45,6 +53,8 @@ export interface CreatePlayerDTO {
   photoUrl?: string;
   position?: PlayerPosition;
   physicalRating?: number;
+  basePhysicalRating?: number;
+  baseSkillRating?: number;
 }
 
 export interface UpdatePlayerDTO {
@@ -52,10 +62,14 @@ export interface UpdatePlayerDTO {
   photoUrl?: string;
   position?: PlayerPosition;
   physicalRating?: number;
+  basePhysicalRating?: number;
+  baseSkillRating?: number;
 }
 
 export interface AddRatingDTO {
-  value: number; // 1.0 a 10.0 (Skill)
+  skill?: number; // 0 ou 1.0 a 10.0 (0 = não votou)
+  physical?: number; // 0 ou 1.0 a 10.0 (0 = não votou)
+  value?: number; // compatibilidade legado
 }
 
 export interface DrawRequestDTO {

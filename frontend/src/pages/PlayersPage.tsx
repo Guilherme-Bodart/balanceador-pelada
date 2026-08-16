@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Player, CreatePlayerInput, UpdatePlayerInput } from '../types';
+import { Player, CreatePlayerInput, UpdatePlayerInput, AddRatingInput } from '../types';
 import { PlayerFormModal } from '../components/players/PlayerFormModal';
 import { RatingModal } from '../components/players/RatingModal';
 import { MonthlyResetModal } from '../components/players/MonthlyResetModal';
@@ -17,7 +17,7 @@ interface PlayersPageProps {
   onRefresh: () => Promise<void>;
   onSavePlayer: (data: CreatePlayerInput | UpdatePlayerInput, id?: string) => Promise<void>;
   onDeletePlayer: (id: string) => Promise<void>;
-  onRatePlayer: (id: string, rating: number) => Promise<void>;
+  onRatePlayer: (id: string, rating: AddRatingInput) => Promise<void>;
   onMonthlyReset: () => Promise<void>;
   onGoToDraw?: () => void;
   isLoading: boolean;
@@ -210,7 +210,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
             return (
               <div
                 key={player.id}
-                className="group relative flex flex-col items-center p-2 sm:p-2.5 rounded-3xl transition-all duration-200 border bg-slate-900/90 border-slate-800/80 hover:border-slate-700 hover:scale-[1.01] shadow-lg"
+                className="group relative flex flex-col items-center p-2 sm:p-2.5 rounded-3xl transition-all duration-200 border bg-slate-900/90 border-slate-800/80 hover:border-slate-700 hover:scale-[1.02] transform-gpu will-change-transform shadow-lg"
               >
                 {/* Escudo FIFA Oficial com Glow Neon + 5px + Cores do Rank */}
                 <div className="w-full flex justify-center py-1">
@@ -230,9 +230,12 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
                     stats={[
                       {
                         label: 'SKL',
-                        value: player.ratingCount > 0 || player.skillRating > 0 ? String(Math.round(player.skillRating * 10)) : '—',
+                        value: (player.skillRatingCount > 0 || player.skillRating > 0) ? String(Math.round(player.skillRating * 10)) : '—',
                       },
-                      { label: 'FIS', value: String(Math.round(player.physicalRating * 10)) },
+                      {
+                        label: 'FIS',
+                        value: (player.physicalRatingCount > 0 || player.physicalRating > 0) ? String(Math.round(player.physicalRating * 10)) : '—',
+                      },
                     ]}
                     className="w-full max-w-[170px] sm:max-w-[190px] h-auto"
                   />
@@ -244,12 +247,12 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({
                     type="button"
                     onClick={() => setRatingPlayer(player)}
                     className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition-all shadow-sm active:scale-95"
-                    title="Avaliar Habilidade"
+                    title="Avaliar Skill e Físico"
                   >
                     <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span>Avaliar</span>
                     <span className="text-[10px] font-mono text-amber-400/80 font-normal">
-                      ({player.ratingCount})
+                      ({player.skillRatingCount ?? 0}|{player.physicalRatingCount ?? 0})
                     </span>
                   </button>
 

@@ -79,7 +79,7 @@ export function PlayerShield({
   return (
     <div
       style={style}
-      className={`relative aspect-[3/4] select-none transition-transform duration-200 hover:scale-[1.03] ${
+      className={`relative aspect-[3/4] select-none transform-gpu will-change-transform ${
         className || "w-64"
       }`}
     >
