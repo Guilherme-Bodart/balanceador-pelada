@@ -5,35 +5,47 @@ export interface PokemonItem {
   photoUrl: string;
 }
 
+/**
+ * Converte qualquer URL legada da PokeAPI (raw.githubusercontent.com)
+ * para a CDN global de alta performance (cdn.jsdelivr.net).
+ */
+export function normalizePokemonPhotoUrl(url?: string | null): string | null {
+  if (!url) return null;
+  return url.replace(
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/',
+    'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/'
+  );
+}
+
 let cachedPokemonList: PokemonItem[] | null = null;
 let fetchPromise: Promise<PokemonItem[]> | null = null;
 
-// Lista inicial de Pokémons populares para carregamento instantâneo (zero delay)
+// Lista inicial de Pokémons populares para carregamento instantâneo via CDN jsDelivr
 export const POPULAR_POKEMONS: PokemonItem[] = [
-  { id: 25, name: 'pikachu', displayName: 'Pikachu', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png' },
-  { id: 6, name: 'charizard', displayName: 'Charizard', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png' },
-  { id: 150, name: 'mewtwo', displayName: 'Mewtwo', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png' },
-  { id: 94, name: 'gengar', displayName: 'Gengar', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png' },
-  { id: 448, name: 'lucario', displayName: 'Lucario', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/448.png' },
-  { id: 658, name: 'greninja', displayName: 'Greninja', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png' },
-  { id: 143, name: 'snorlax', displayName: 'Snorlax', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png' },
-  { id: 9, name: 'blastoise', displayName: 'Blastoise', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png' },
-  { id: 149, name: 'dragonite', displayName: 'Dragonite', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png' },
-  { id: 445, name: 'garchomp', displayName: 'Garchomp', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/445.png' },
-  { id: 384, name: 'rayquaza', displayName: 'Rayquaza', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png' },
-  { id: 130, name: 'gyarados', displayName: 'Gyarados', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png' },
-  { id: 59, name: 'arcanine', displayName: 'Arcanine', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png' },
-  { id: 157, name: 'typhlosion', displayName: 'Typhlosion', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/157.png' },
-  { id: 248, name: 'tyranitar', displayName: 'Tyranitar', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/248.png' },
-  { id: 133, name: 'eevee', displayName: 'Eevee', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png' },
-  { id: 197, name: 'umbreon', displayName: 'Umbreon', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/197.png' },
-  { id: 212, name: 'scizor', displayName: 'Scizor', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/212.png' },
-  { id: 392, name: 'infernape', displayName: 'Infernape', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png' },
-  { id: 254, name: 'sceptile', displayName: 'Sceptile', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/254.png' },
-  { id: 257, name: 'blaziken', displayName: 'Blaziken', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/257.png' },
-  { id: 3, name: 'venusaur', displayName: 'Venusaur', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png' },
-  { id: 68, name: 'machamp', displayName: 'Machamp', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png' },
-  { id: 807, name: 'zeraora', displayName: 'Zeraora', photoUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/807.png' },
+  { id: 25, name: 'pikachu', displayName: 'Pikachu', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png' },
+  { id: 6, name: 'charizard', displayName: 'Charizard', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/6.png' },
+  { id: 150, name: 'mewtwo', displayName: 'Mewtwo', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/150.png' },
+  { id: 94, name: 'gengar', displayName: 'Gengar', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/94.png' },
+  { id: 448, name: 'lucario', displayName: 'Lucario', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/448.png' },
+  { id: 658, name: 'greninja', displayName: 'Greninja', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/658.png' },
+  { id: 143, name: 'snorlax', displayName: 'Snorlax', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/143.png' },
+  { id: 9, name: 'blastoise', displayName: 'Blastoise', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/9.png' },
+  { id: 149, name: 'dragonite', displayName: 'Dragonite', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/149.png' },
+  { id: 445, name: 'garchomp', displayName: 'Garchomp', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/445.png' },
+  { id: 384, name: 'rayquaza', displayName: 'Rayquaza', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/384.png' },
+  { id: 130, name: 'gyarados', displayName: 'Gyarados', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/130.png' },
+  { id: 59, name: 'arcanine', displayName: 'Arcanine', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/59.png' },
+  { id: 157, name: 'typhlosion', displayName: 'Typhlosion', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/157.png' },
+  { id: 248, name: 'tyranitar', displayName: 'Tyranitar', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/248.png' },
+  { id: 133, name: 'eevee', displayName: 'Eevee', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/133.png' },
+  { id: 197, name: 'umbreon', displayName: 'Umbreon', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/197.png' },
+  { id: 212, name: 'scizor', displayName: 'Scizor', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/212.png' },
+  { id: 392, name: 'infernape', displayName: 'Infernape', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/392.png' },
+  { id: 254, name: 'sceptile', displayName: 'Sceptile', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/254.png' },
+  { id: 257, name: 'blaziken', displayName: 'Blaziken', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/257.png' },
+  { id: 3, name: 'venusaur', displayName: 'Venusaur', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/3.png' },
+  { id: 68, name: 'machamp', displayName: 'Machamp', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/68.png' },
+  { id: 807, name: 'zeraora', displayName: 'Zeraora', photoUrl: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/807.png' },
 ];
 
 /**
@@ -61,7 +73,7 @@ export async function getFullPokemonList(): Promise<PokemonItem[]> {
           id,
           name: p.name.toLowerCase(),
           displayName,
-          photoUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+          photoUrl: `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${id}.png`,
         };
       });
 

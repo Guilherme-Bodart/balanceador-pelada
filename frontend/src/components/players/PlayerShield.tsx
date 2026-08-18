@@ -1,4 +1,5 @@
 import React, { CSSProperties } from "react";
+import { normalizePokemonPhotoUrl } from "../../services/pokemonService";
 
 export type ShieldEffect = "none" | "glow" | "beam" | "shine" | "all";
 
@@ -55,6 +56,7 @@ export function PlayerShield({
 }: PlayerShieldProps) {
   const finalAccentAlt = accentAlt ?? accent;
   const isUR = grade === "UR" || accent === "#ffffff" || accent.toLowerCase() === "#fff";
+  const normalizedPhotoUrl = normalizePokemonPhotoUrl(photoUrl) || undefined;
 
   // Resolução de efeitos
   const hasGlow = glow || effect === "glow" || effect === "all";
@@ -210,9 +212,9 @@ export function PlayerShield({
 
       {/* Foto */}
       <div className="absolute right-[6%] top-[13%] z-10 h-[38%] w-[52%] overflow-hidden">
-        {photoUrl ? (
+        {normalizedPhotoUrl ? (
           <img
-            src={photoUrl}
+            src={normalizedPhotoUrl}
             alt={name}
             className="h-full w-full object-contain object-bottom drop-shadow-md"
             loading="lazy"
