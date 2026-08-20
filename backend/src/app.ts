@@ -22,8 +22,9 @@ export const createApp = () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Rotas da API
+  // Rotas da API (suporta chamadas com prefixo /api ou diretamente)
   app.use('/api', appRouter);
+  app.use(appRouter);
 
   // 404 Handler para rotas inexistentes
   app.use((req, res) => {
